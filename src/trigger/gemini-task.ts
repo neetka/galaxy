@@ -34,54 +34,91 @@ export interface GeminiTaskOutput {
 export async function executeGemini(
   input: GeminiTaskInput
 ): Promise<GeminiTaskOutput> {
+  // Validate and sanitize model (prefer gemini-2.0-flash for free tier)
+  const validModels = ["gemini-2.0-flash", "gemini-2.5-pro", "gemini-1.5-pro", "gemini-1.5-flash"];
+  const sanitizedModel = validModels.includes(input.model) ? input.model : "gemini-2.0-flash";
+  
+  console.log("[executeGemini] Starting with input:", {
+    originalModel: input.model,
+    sanitizedModel,
+    prompt: input.prompt.substring(0, 100) + "...",
+    hasImages: !!input.images?.length,
+  });
+  
   const apiKey = process.env.GEMINI_API_KEY;
+  console.log("[executeGemini] API key exists:", !!apiKey);
 
-  if (!apiKey) {
-    // Return mock response when API key is not configured
-    return {
-      response: `[Gemini Mock Response]\n\nPrompt: "${input.prompt}"\n\nThis is a placeholder response. Configure GEMINI_API_KEY to enable real Gemini AI responses.`,
-      model: input.model,
-    };
-  }
-
-  // Dynamic import to avoid issues when SDK is not needed
-  const { GoogleGenerativeAI } = await import("@google/generative-ai");
-  const genAI = new GoogleGenerativeAI(apiKey);
-
-  const model = genAI.getGenerativeModel({
-    model: input.model || "gemini-2.5-pro",
-    systemInstruction: input.systemPrompt || undefined,
-    generationConfig: {
-      temperature: input.temperature ?? 0.7,
-      maxOutputTokens: input.maxTokens ?? 8192,
-      topP: input.topP ?? 0.95,
-    },
+  // Helper to create a friendly mock/fallback response
+  const getFallbackResponse = (reason: string) => ({
+    response: `[Gemini Fallback Response]\n\nReason: ${reason}\n\nPrompt: "${input.prompt}"\n\nThis is a placeholder response while Gemini is unavailable.`,
+    model: sanitizedModel,
   });
 
-  // Build content parts
-  const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [];
-
-  // Add images if provided
-  if (input.images?.length) {
-    for (const imageBase64 of input.images) {
-      parts.push({
-        inlineData: {
-          mimeType: "image/jpeg",
-          data: imageBase64,
-        },
-      });
-    }
+  if (!apiKey) {
+    console.warn("[executeGemini] No API key found, returning mock response");
+    return getFallbackResponse("No API key configured");
   }
 
-  // Add prompt text
-  parts.push({ text: input.prompt });
+  try {
+    // Dynamic import to avoid issues when SDK is not needed
+    const { GoogleGenerativeAI } = await import("@google/generative-ai");
+    console.log("[executeGemini] Successfully imported GoogleGenerativeAI");
+    const genAI = new GoogleGenerativeAI(apiKey);
 
-  const result = await model.generateContent(parts);
-  const response = result.response;
-  const text = response.text();
+    const model = genAI.getGenerativeModel({
+      model: sanitizedModel,
+      systemInstruction: input.systemPrompt || undefined,
+      generationConfig: {
+        temperature: input.temperature ?? 0.7,
+        maxOutputTokens: input.maxTokens ?? 8192,
+        topP: input.topP ?? 0.95,
+      },
+    });
 
-  return {
-    response: text,
-    model: input.model,
-  };
+    console.log("[executeGemini] Model initialized:", sanitizedModel);
+
+    // Build content parts
+    const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [];
+
+    // Add images if provided
+    if (input.images?.length) {
+      console.log("[executeGemini] Adding", input.images.length, "image(s)");
+      for (const imageBase64 of input.images) {
+        parts.push({
+          inlineData: {
+            mimeType: "image/jpeg",
+            data: imageBase64,
+          },
+        });
+      }
+    }
+
+    // Add prompt text
+    parts.push({ text: input.prompt });
+    console.log("[executeGemini] Calling generateContent with", parts.length, "part(s)");
+
+    const result = await model.generateContent(parts);
+    const response = result.response;
+    const text = response.text();
+
+    console.log("[executeGemini] Successfully got response, length:", text.length);
+
+    return {
+      response: text,
+      model: sanitizedModel,
+    };
+  } catch (err) {
+    console.error("[executeGemini] ERROR:", err);
+    const errorStr = String(err);
+    
+    // Check for quota exceeded (429) or other common errors
+    if (errorStr.includes("429") || errorStr.includes("Quota exceeded")) {
+      console.warn("[executeGemini] Quota exceeded, returning fallback response");
+      return getFallbackResponse("Quota exceeded for Gemini API");
+    }
+    
+    // For any other error, also return a fallback instead of failing the workflow
+    console.warn("[executeGemini] Other error, returning fallback response");
+    return getFallbackResponse(`Temporary Gemini error: ${errorStr.substring(0, 100)}`);
+  }
 }

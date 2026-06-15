@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { Crop } from "lucide-react";
 import { BaseNode } from "./base-node";
@@ -9,7 +10,14 @@ import type { CropImageNodeData } from "@/types/workflow";
 export function CropImageNode({ id, data }: NodeProps) {
   const nodeData = data as unknown as CropImageNodeData;
   const updateNodeData = useWorkflowStore((s) => s.updateNodeData);
-  const connectedInputs = useWorkflowStore((s) => s.getConnectedInputs(id));
+  const edges = useWorkflowStore((s) => s.edges);
+
+  // Compute connected inputs with useMemo!
+  const connectedInputs = useMemo(() => {
+    return edges
+      .filter((e) => e.target === id)
+      .map((e) => e.targetHandle || "");
+  }, [edges, id]);
 
   const fields = [
     { key: "x", label: "X %", handleId: "x" },

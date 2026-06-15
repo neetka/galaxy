@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { Sparkles, ChevronDown, ChevronRight } from "lucide-react";
 import { BaseNode } from "./base-node";
@@ -8,16 +8,24 @@ import { useWorkflowStore } from "@/stores/workflow-store";
 import type { GeminiNodeData } from "@/types/workflow";
 
 const GEMINI_MODELS = [
-  { id: "gemini-3.1-pro", label: "Gemini 3.1 Pro" },
-  { id: "gemini-3.1-flash", label: "Gemini 3.1 Flash" },
+  { id: "gemini-2.0-flash", label: "Gemini 2.0 Flash (Free Tier)" },
   { id: "gemini-2.5-pro", label: "Gemini 2.5 Pro" },
+  { id: "gemini-1.5-pro", label: "Gemini 1.5 Pro" },
+  { id: "gemini-1.5-flash", label: "Gemini 1.5 Flash" },
 ];
 
 export function GeminiNode({ id, data }: NodeProps) {
   const nodeData = data as unknown as GeminiNodeData;
   const updateNodeData = useWorkflowStore((s) => s.updateNodeData);
-  const connectedInputs = useWorkflowStore((s) => s.getConnectedInputs(id));
+  const edges = useWorkflowStore((s) => s.edges);
   const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // Compute connected inputs with useMemo!
+  const connectedInputs = useMemo(() => {
+    return edges
+      .filter((e) => e.target === id)
+      .map((e) => e.targetHandle || "");
+  }, [edges, id]);
 
   const isPromptConnected = connectedInputs.includes("prompt");
   const isSystemPromptConnected = connectedInputs.includes("systemPrompt");

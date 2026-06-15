@@ -94,7 +94,7 @@ export async function POST(request: Request) {
         position: { x: 400, y: 300 },
         data: {
           label: "Gemini #1 (Copywriter)",
-          model: "gemini-3.1-pro",
+          model: "gemini-2.0-flash",
           systemPrompt: "You are a marketing copywriter. Write a one-paragraph product description.",
           prompt: "",
           temperature: 0.7,
@@ -109,7 +109,7 @@ export async function POST(request: Request) {
         position: { x: 700, y: 300 },
         data: {
           label: "Gemini #2 (Twitter Hook)",
-          model: "gemini-3.1-pro",
+          model: "gemini-2.0-flash",
           systemPrompt: "Condense the following product description into a tweet-length hook under 240 characters.",
           prompt: "",
           temperature: 0.7,
@@ -124,7 +124,7 @@ export async function POST(request: Request) {
         position: { x: 1000, y: 300 },
         data: {
           label: "Final Gemini (Social Post)",
-          model: "gemini-3.1-pro",
+          model: "gemini-2.0-flash",
           systemPrompt: "You are a social media manager. Combine the tweet hook and the two product crops into a final marketing post.",
           prompt: "",
           temperature: 0.7,

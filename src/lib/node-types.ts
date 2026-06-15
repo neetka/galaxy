@@ -111,7 +111,7 @@ export const NODE_CATALOG: NodeCatalogEntry[] = [
   },
   {
     type: "gemini",
-    label: "Gemini 3.1 Pro",
+    label: "Gemini 2.5 Pro",
     description: "Google Gemini multimodal AI model",
     category: "ai",
     icon: "Sparkles",

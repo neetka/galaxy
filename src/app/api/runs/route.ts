@@ -44,7 +44,10 @@ export async function POST(request: Request) {
   // Execute in the background after returning the response
   after(async () => {
     const startTime = Date.now();
+    console.log("[api/runs/POST] Starting workflow execution for runId:", run.id);
+    
     try {
+      console.log("[api/runs/POST] Starting DAG execution with scope:", parsed.data.scope);
       const nodeRunResults = await executeDAG(
         {
           nodes: parsed.data.nodes,
@@ -52,6 +55,7 @@ export async function POST(request: Request) {
           scope: parsed.data.scope,
           targetNodeIds: parsed.data.nodeIds,
           onNodeStart: async (nodeId) => {
+            console.log("[api/runs/POST] Node start:", nodeId);
             const node = parsed.data.nodes.find((n: any) => n.id === nodeId);
             await prisma.nodeRun.create({
               data: {
@@ -63,6 +67,7 @@ export async function POST(request: Request) {
             });
           },
           onNodeComplete: async (nodeId, result) => {
+            console.log("[api/runs/POST] Node complete:", nodeId, "status:", result.status);
             const existingNodeRun = await prisma.nodeRun.findFirst({
               where: { runId: run.id, nodeId },
             });
@@ -79,6 +84,7 @@ export async function POST(request: Request) {
             }
           },
           onNodeError: async (nodeId, error) => {
+            console.error("[api/runs/POST] Node error:", nodeId, error);
             const existingNodeRun = await prisma.nodeRun.findFirst({
               where: { runId: run.id, nodeId },
             });
@@ -94,6 +100,8 @@ export async function POST(request: Request) {
           },
         },
         async (nodeId, nodeType, inputs) => {
+          console.log("[api/runs/POST] Executing node:", nodeId, "type:", nodeType);
+          
           if (nodeType === "requestInputs") {
             const outputs: Record<string, unknown> = {};
             const fields = (inputs.fields || []) as any[];
@@ -103,6 +111,7 @@ export async function POST(request: Request) {
                 outputs[`${f.id}_image`] = f.value;
               }
             }
+            console.log("[api/runs/POST] RequestInputs outputs:", Object.keys(outputs));
             return outputs;
           } else if (nodeType === "cropImage") {
             const inputImage = inputs.inputImage as string;
@@ -125,7 +134,11 @@ export async function POST(request: Request) {
               outputImage: res.croppedImageBase64,
             };
           } else if (nodeType === "gemini") {
-            const model = (inputs.model as string) || "gemini-3.1-pro";
+            // Validate and sanitize model (prefer gemini-2.0-flash for free tier)
+            const validModels = ["gemini-2.0-flash", "gemini-2.5-pro", "gemini-1.5-pro", "gemini-1.5-flash"];
+            const rawModel = (inputs.model as string);
+            const model = validModels.includes(rawModel) ? rawModel : "gemini-2.0-flash";
+            
             const prompt = (inputs.prompt as string) || "";
             const systemPrompt = (inputs.systemPrompt as string) || "";
             const image = inputs.image as string | undefined;
@@ -134,6 +147,13 @@ export async function POST(request: Request) {
             const file = inputs.file as string | undefined;
 
             const images = image ? [image] : [];
+            console.log("[api/runs/POST] Executing Gemini with:", {
+              model,
+              promptLength: prompt.length,
+              hasSystemPrompt: !!systemPrompt,
+              hasImages: !!images.length,
+            });
+            
             const { executeGemini } = await import("@/trigger/gemini-task");
             const res = await executeGemini({
               model,
@@ -144,6 +164,8 @@ export async function POST(request: Request) {
               audio,
               file,
             });
+            
+            console.log("[api/runs/POST] Gemini returned response, length:", res.response.length);
             return {
               response: res.response,
             };
@@ -159,6 +181,7 @@ export async function POST(request: Request) {
 
       const hasFailure = nodeRunResults.some((r) => r.status === "failed");
       const durationMs = Date.now() - startTime;
+      console.log("[api/runs/POST] DAG execution complete, duration:", durationMs, "ms, hasFailure:", hasFailure);
 
       // Update WorkflowRun record with the final status and duration
       await prisma.workflowRun.update({
@@ -213,8 +236,15 @@ export async function POST(request: Request) {
       });
 
     } catch (error) {
-      console.error("Workflow execution failed:", error);
+      console.error("[api/runs/POST] Workflow execution failed:", error);
       const durationMs = Date.now() - startTime;
+      
+      // Try to get the error message to store in run
+      let errorMessage = "Unknown error";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
       await prisma.workflowRun.update({
         where: { id: run.id },
         data: {

@@ -170,8 +170,8 @@ export function NodePicker() {
                           height: 100,
                           connectedInputs: new Set<string>(),
                         } : {
-                          label: "Gemini 3.1 Pro",
-                          model: "gemini-3.1-pro",
+                          label: "Gemini 2.5 Pro",
+                          model: "gemini-2.5-pro",
                           prompt: "",
                           systemPrompt: "",
                           images: [],

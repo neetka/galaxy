@@ -122,7 +122,8 @@ function WorkflowCanvasInner({ workflowId }: { workflowId: string }) {
         const selectedNodes = useWorkflowStore.getState().selectedNodes;
         selectedNodes.forEach((id) => {
           const node = useWorkflowStore.getState().nodes.find((n) => n.id === id);
-          if (node && node.deletable !== false) {
+          // Don't delete requestInputs and response nodes
+          if (node && node.type !== "requestInputs" && node.type !== "response") {
             removeNode(id);
           }
         });
@@ -263,8 +264,8 @@ function createNodeByType(
         type: "gemini",
         position,
         data: {
-          label: "Gemini 3.1 Pro",
-          model: "gemini-3.1-pro",
+          label: "Gemini 2.0 Flash",
+          model: "gemini-2.0-flash",
           prompt: "",
           systemPrompt: "",
           images: [],
