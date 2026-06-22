@@ -25,16 +25,21 @@ export function HistoryPanel({ workflowId }: { workflowId: string }) {
   const [runs, setRuns] = useState<RunData[]>([]);
   const [expandedRun, setExpandedRun] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
 
   useEffect(() => {
     async function fetchRuns() {
+      setFetchError(false);
       try {
         const res = await fetch(`/api/runs/${workflowId}`);
         if (res.ok) {
           setRuns(await res.json());
+        } else {
+          setFetchError(true);
         }
       } catch (error) {
         console.error("Failed to fetch runs:", error);
+        setFetchError(true);
       } finally {
         setIsLoading(false);
       }
@@ -68,6 +73,12 @@ export function HistoryPanel({ workflowId }: { workflowId: string }) {
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="h-16 animate-pulse rounded-xl bg-zinc-800/50" />
             ))}
+          </div>
+        ) : fetchError ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <AlertTriangle className="h-8 w-8 text-red-400/60 mb-3" />
+            <p className="text-sm text-zinc-400">Failed to load history</p>
+            <p className="text-xs text-zinc-600 mt-1">Try closing and reopening this panel</p>
           </div>
         ) : runs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -138,7 +149,7 @@ export function HistoryPanel({ workflowId }: { workflowId: string }) {
                           </span>
                         )}
                         {nodeRun.error && (
-                          <span className="text-[10px] text-red-400 truncate max-w-[100px]">
+                          <span className="text-[10px] text-red-400 truncate max-w-[200px]" title={nodeRun.error}>
                             {nodeRun.error}
                           </span>
                         )}

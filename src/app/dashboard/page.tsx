@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { AlertTriangle, RefreshCw } from "lucide-react";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { WorkflowCard } from "@/components/dashboard/workflow-card";
 import { CreateWorkflowDialog } from "@/components/dashboard/create-workflow-dialog";
@@ -21,16 +22,22 @@ export default function DashboardPage() {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const fetchWorkflows = useCallback(async () => {
+    setIsLoading(true);
+    setFetchError(null);
     try {
       const res = await fetch("/api/workflows");
       if (res.ok) {
         const data = await res.json();
         setWorkflows(data);
+      } else {
+        setFetchError("Failed to load workflows. Please try again.");
       }
     } catch (error) {
       console.error("Failed to fetch workflows:", error);
+      setFetchError("Network error. Please check your connection and try again.");
     } finally {
       setIsLoading(false);
     }
@@ -83,6 +90,21 @@ export default function DashboardPage() {
                 className="h-52 animate-pulse rounded-2xl border border-zinc-800 bg-zinc-900/50"
               />
             ))}
+          </div>
+        ) : fetchError ? (
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10 border border-red-500/20">
+              <AlertTriangle className="h-7 w-7 text-red-400" />
+            </div>
+            <h3 className="mb-2 text-lg font-semibold text-zinc-100">Something went wrong</h3>
+            <p className="mb-6 max-w-sm text-sm text-zinc-500">{fetchError}</p>
+            <button
+              onClick={fetchWorkflows}
+              className="flex items-center gap-2 rounded-xl bg-purple-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-purple-500"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Retry
+            </button>
           </div>
         ) : workflows.length === 0 ? (
           <EmptyState onCreateWorkflow={() => setIsCreateOpen(true)} />

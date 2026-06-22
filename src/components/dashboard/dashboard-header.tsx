@@ -17,7 +17,7 @@ export function DashboardHeader({ onCreateWorkflow }: DashboardHeaderProps) {
             <Workflow className="h-5 w-5 text-white" />
           </div>
           <h1 className="text-lg font-semibold tracking-tight text-zinc-50">
-            NextFlow
+            Galaxy
           </h1>
         </div>
 

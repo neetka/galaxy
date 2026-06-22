@@ -34,7 +34,7 @@ export function WorkflowToolbar({ workflowId }: WorkflowToolbarProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(workflowName);
   const [isSaving, setIsSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saved">("idle");
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle");
 
   const handleSave = useCallback(async () => {
     setIsSaving(true);
@@ -52,6 +52,8 @@ export function WorkflowToolbar({ workflowId }: WorkflowToolbarProps) {
       setTimeout(() => setSaveStatus("idle"), 2000);
     } catch (error) {
       console.error("Failed to save:", error);
+      setSaveStatus("error");
+      setTimeout(() => setSaveStatus("idle"), 3000);
     } finally {
       setIsSaving(false);
     }
@@ -219,14 +221,18 @@ export function WorkflowToolbar({ workflowId }: WorkflowToolbarProps) {
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="flex h-8 items-center gap-1.5 rounded-lg border border-zinc-800 px-3 text-xs font-medium text-zinc-400 transition-all hover:border-zinc-700 hover:text-zinc-200 disabled:opacity-50"
+          className={`flex h-8 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-all disabled:opacity-50 ${
+            saveStatus === "error"
+              ? "border-red-500/50 text-red-400 hover:border-red-500/70"
+              : "border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+          }`}
         >
           {isSaving ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
           ) : (
             <Save className="h-3.5 w-3.5" />
           )}
-          {saveStatus === "saved" ? "Saved!" : "Save"}
+          {saveStatus === "saved" ? "Saved!" : saveStatus === "error" ? "Error!" : "Save"}
         </button>
 
         <button

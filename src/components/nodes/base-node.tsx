@@ -31,7 +31,7 @@ export function BaseNode({
         w-[320px] rounded-2xl border bg-zinc-900/95 backdrop-blur-sm shadow-lg
         transition-all duration-300
         ${isRunning ? "animate-node-glow border-purple-500/50" : "border-zinc-700/60"}
-        ${hasError ? "border-red-500/50" : ""}
+        ${hasError ? "animate-node-error border-red-500/50" : ""}
         hover:shadow-xl hover:border-zinc-600/60
       `}
     >
