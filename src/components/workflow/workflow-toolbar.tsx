@@ -85,10 +85,15 @@ export function WorkflowToolbar({ workflowId }: WorkflowToolbarProps) {
       });
       if (!res.ok) {
         useWorkflowStore.getState().setIsRunning(false);
+        const data = await res.json().catch(() => ({}));
+        useWorkflowStore.getState().setWorkflowError(data.error || "Failed to start workflow execution");
       }
     } catch (error) {
       console.error("Failed to run:", error);
       useWorkflowStore.getState().setIsRunning(false);
+      useWorkflowStore.getState().setWorkflowError(
+        error instanceof Error ? error.message : "Failed to start workflow execution"
+      );
     }
   };
 

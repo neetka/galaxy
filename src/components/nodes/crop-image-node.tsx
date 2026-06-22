@@ -11,6 +11,8 @@ export function CropImageNode({ id, data }: NodeProps) {
   const nodeData = data as unknown as CropImageNodeData;
   const updateNodeData = useWorkflowStore((s) => s.updateNodeData);
   const edges = useWorkflowStore((s) => s.edges);
+  const nodeErrors = useWorkflowStore((s) => s.nodeErrors);
+  const errorMessage = nodeErrors.get(id) || null;
 
   // Compute connected inputs with useMemo!
   const connectedInputs = useMemo(() => {
@@ -43,15 +45,19 @@ export function CropImageNode({ id, data }: NodeProps) {
         color="#f97316"
         isRunning={nodeData.isRunning}
         hasError={nodeData.hasError}
+        errorMessage={errorMessage}
       >
         {/* Image preview / placeholder */}
         <div className="flex h-20 items-center justify-center rounded-xl border border-dashed border-zinc-700 bg-zinc-800/30">
           {nodeData.inputImage ? (
-            <img
-              src={nodeData.inputImage}
-              alt="Input"
-              className="h-full w-full rounded-xl object-cover"
-            />
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={nodeData.inputImage}
+                alt="Input"
+                className="h-full w-full rounded-xl object-cover"
+              />
+            </>
           ) : (
             <span className="text-xs text-zinc-600">
               {connectedInputs.includes("inputImage")

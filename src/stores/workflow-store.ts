@@ -36,6 +36,8 @@ interface WorkflowState {
   // Execution state
   isRunning: boolean;
   runningNodes: Set<string>;
+  workflowError: string | null;
+  nodeErrors: Map<string, string>;
 
   // History
   history: WorkflowRunResult[];
@@ -57,8 +59,11 @@ interface WorkflowState {
   setIsRunning: (running: boolean) => void;
   setNodeRunning: (nodeId: string, running: boolean) => void;
   setNodeError: (nodeId: string, hasError: boolean) => void;
+  setNodeErrorMessage: (nodeId: string, message: string | null) => void;
+  setWorkflowError: (error: string | null) => void;
   setNodeOutput: (nodeId: string, output: unknown) => void;
   clearNodeStates: () => void;
+  resetAllRunningNodes: () => void;
   addRunToHistory: (run: WorkflowRunResult) => void;
 
   // Actions — Validation
@@ -111,6 +116,8 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   selectedNodes: [],
   isRunning: false,
   runningNodes: new Set(),
+  workflowError: null,
+  nodeErrors: new Map(),
   history: [],
 
   onNodesChange: (changes) => {
@@ -210,6 +217,19 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
       ),
     })),
 
+  setNodeErrorMessage: (nodeId, message) =>
+    set((state) => {
+      const newErrors = new Map(state.nodeErrors);
+      if (message) {
+        newErrors.set(nodeId, message);
+      } else {
+        newErrors.delete(nodeId);
+      }
+      return { nodeErrors: newErrors };
+    }),
+
+  setWorkflowError: (error) => set({ workflowError: error }),
+
   setNodeOutput: (nodeId, output) =>
     set((state) => ({
       nodes: state.nodes.map((node) =>
@@ -222,10 +242,22 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   clearNodeStates: () =>
     set((state) => ({
       runningNodes: new Set(),
+      workflowError: null,
+      nodeErrors: new Map(),
       nodes: state.nodes.map((node) => ({
         ...node,
         data: { ...node.data, isRunning: false, hasError: false },
       })),
+    })),
+
+  resetAllRunningNodes: () =>
+    set((state) => ({
+      runningNodes: new Set(),
+      nodes: state.nodes.map((node) =>
+        node.data.isRunning
+          ? { ...node, data: { ...node.data, isRunning: false } }
+          : node
+      ),
     })),
 
   addRunToHistory: (run) =>

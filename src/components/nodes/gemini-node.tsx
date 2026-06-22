@@ -18,6 +18,8 @@ export function GeminiNode({ id, data }: NodeProps) {
   const nodeData = data as unknown as GeminiNodeData;
   const updateNodeData = useWorkflowStore((s) => s.updateNodeData);
   const edges = useWorkflowStore((s) => s.edges);
+  const nodeErrors = useWorkflowStore((s) => s.nodeErrors);
+  const errorMessage = nodeErrors.get(id) || null;
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Compute connected inputs with useMemo!
@@ -52,6 +54,7 @@ export function GeminiNode({ id, data }: NodeProps) {
         color="#a855f7"
         isRunning={nodeData.isRunning}
         hasError={nodeData.hasError}
+        errorMessage={errorMessage}
         headerExtra={
           <select
             className="rounded-lg border border-zinc-700 bg-zinc-800 px-2 py-1 text-[10px] text-zinc-400 outline-none"

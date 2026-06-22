@@ -3,10 +3,13 @@
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { FileOutput } from "lucide-react";
 import { BaseNode } from "./base-node";
+import { useWorkflowStore } from "@/stores/workflow-store";
 import type { ResponseNodeData } from "@/types/workflow";
 
-export function ResponseNode({ data }: NodeProps) {
+export function ResponseNode({ id, data }: NodeProps) {
   const nodeData = data as unknown as ResponseNodeData;
+  const nodeErrors = useWorkflowStore((s) => s.nodeErrors);
+  const errorMessage = nodeErrors.get(id) || null;
 
   return (
     <div>
@@ -25,6 +28,7 @@ export function ResponseNode({ data }: NodeProps) {
         color="#22c55e"
         isRunning={nodeData.isRunning}
         hasError={nodeData.hasError}
+        errorMessage={errorMessage}
         isDeletable={false}
       >
         {/* Result display */}

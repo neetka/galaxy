@@ -181,7 +181,7 @@ export function NodePicker() {
                           connectedInputs: new Set<string>(),
                         },
                       };
-                      addNode(newNode as any);
+                      addNode(newNode as import("@/types/workflow").AppNode);
                       setNodePickerOpen(false);
                     }}
                   />

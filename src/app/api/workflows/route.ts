@@ -43,8 +43,8 @@ export async function POST(request: Request) {
     );
   }
 
-  let nodes: any[] = [];
-  let edges: any[] = [];
+  let nodes: Record<string, unknown>[] = [];
+  let edges: Record<string, unknown>[] = [];
 
   if (parsed.data.template === "marketing") {
     // Seed the sample 7-node marketing workflow

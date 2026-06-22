@@ -9,6 +9,7 @@ interface BaseNodeProps {
   color: string;
   isRunning?: boolean;
   hasError?: boolean;
+  errorMessage?: string | null;
   children: ReactNode;
   headerExtra?: ReactNode;
   isDeletable?: boolean;
@@ -20,6 +21,7 @@ export function BaseNode({
   color,
   isRunning = false,
   hasError = false,
+  errorMessage = null,
   children,
   headerExtra,
 }: BaseNodeProps) {
@@ -60,7 +62,17 @@ export function BaseNode({
       </div>
 
       {/* Body */}
-      <div className="p-4 space-y-3">{children}</div>
+      <div className="p-4 space-y-3">
+        {hasError && errorMessage && (
+          <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-400 font-medium">
+            <div className="flex items-start gap-1.5">
+              <AlertCircle className="h-3.5 w-3.5 text-red-500 shrink-0 mt-0.5" />
+              <span className="break-words leading-relaxed">{errorMessage}</span>
+            </div>
+          </div>
+        )}
+        {children}
+      </div>
     </div>
   );
 }

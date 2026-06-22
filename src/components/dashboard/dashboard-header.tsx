@@ -1,7 +1,7 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
-import { Plus, Upload, Download, Workflow } from "lucide-react";
+import { Plus, Upload, Workflow } from "lucide-react";
 
 interface DashboardHeaderProps {
   onCreateWorkflow: () => void;

@@ -109,16 +109,22 @@ export async function executeGemini(
     };
   } catch (err) {
     console.error("[executeGemini] ERROR:", err);
-    const errorStr = String(err);
+    const errorStr = err instanceof Error ? err.message : String(err);
     
-    // Check for quota exceeded (429) or other common errors
+    // Provide clear, actionable error messages for known failure modes
     if (errorStr.includes("429") || errorStr.includes("Quota exceeded")) {
-      console.warn("[executeGemini] Quota exceeded, returning fallback response");
-      return getFallbackResponse("Quota exceeded for Gemini API");
+      throw new Error("Gemini API quota exceeded. Please wait and try again, or switch to a different model.");
     }
     
-    // For any other error, also return a fallback instead of failing the workflow
-    console.warn("[executeGemini] Other error, returning fallback response");
-    return getFallbackResponse(`Temporary Gemini error: ${errorStr.substring(0, 100)}`);
+    if (errorStr.includes("400") || errorStr.includes("INVALID_ARGUMENT")) {
+      throw new Error(`Gemini rejected the input: ${errorStr.substring(0, 200)}`);
+    }
+
+    if (errorStr.includes("403") || errorStr.includes("PERMISSION_DENIED")) {
+      throw new Error("Gemini API key does not have permission for this model. Check your API key settings.");
+    }
+
+    // Re-throw with a clean message for any other error
+    throw new Error(`Gemini API error: ${errorStr.substring(0, 200)}`);
   }
 }

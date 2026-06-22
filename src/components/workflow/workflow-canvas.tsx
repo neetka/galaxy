@@ -16,6 +16,7 @@ import "@xyflow/react/dist/style.css";
 
 import { useWorkflowStore } from "@/stores/workflow-store";
 import { useUIStore } from "@/stores/ui-store";
+import { AlertCircle, X } from "lucide-react";
 import { WorkflowToolbar } from "./workflow-toolbar";
 import { NodePicker } from "./node-picker";
 import { HistoryPanel } from "./history-panel";
@@ -57,13 +58,13 @@ function WorkflowCanvasInner({ workflowId }: { workflowId: string }) {
   const setIsRunning = useWorkflowStore((s) => s.setIsRunning);
   const setNodeRunning = useWorkflowStore((s) => s.setNodeRunning);
   const setNodeError = useWorkflowStore((s) => s.setNodeError);
+  const setNodeErrorMessage = useWorkflowStore((s) => s.setNodeErrorMessage);
   const updateNodeData = useWorkflowStore((s) => s.updateNodeData);
+  const workflowError = useWorkflowStore((s) => s.workflowError);
 
   // Poll workflow run status in the background when running
   useEffect(() => {
     if (!isRunning) return;
-
-    let intervalId: NodeJS.Timeout;
 
     const poll = async () => {
       try {
@@ -75,13 +76,21 @@ function WorkflowCanvasInner({ workflowId }: { workflowId: string }) {
         const latestRun = runs[0];
 
         // Update each node state
-        latestRun.nodeRuns.forEach((nodeRun: any) => {
+        latestRun.nodeRuns.forEach((nodeRun: {
+          nodeId: string;
+          status: string;
+          output?: string | Record<string, unknown> | null;
+          error?: string | null;
+          nodeType: string;
+        }) => {
           if (nodeRun.status === "running") {
             setNodeRunning(nodeRun.nodeId, true);
             setNodeError(nodeRun.nodeId, false);
+            setNodeErrorMessage(nodeRun.nodeId, null);
           } else if (nodeRun.status === "success") {
             setNodeRunning(nodeRun.nodeId, false);
             setNodeError(nodeRun.nodeId, false);
+            setNodeErrorMessage(nodeRun.nodeId, null);
             // Update node data with output
             const output = typeof nodeRun.output === "string" ? JSON.parse(nodeRun.output) : nodeRun.output;
             if (output) {
@@ -96,11 +105,21 @@ function WorkflowCanvasInner({ workflowId }: { workflowId: string }) {
           } else if (nodeRun.status === "failed") {
             setNodeRunning(nodeRun.nodeId, false);
             setNodeError(nodeRun.nodeId, true);
+            setNodeErrorMessage(nodeRun.nodeId, nodeRun.error || "Execution failed");
+          } else if (nodeRun.status === "skipped") {
+            setNodeRunning(nodeRun.nodeId, false);
+            setNodeError(nodeRun.nodeId, true);
+            setNodeErrorMessage(nodeRun.nodeId, nodeRun.error || "Skipped due to upstream failure");
           }
         });
 
         if (latestRun.status === "success" || latestRun.status === "failed") {
           setIsRunning(false);
+          if (latestRun.status === "failed") {
+            useWorkflowStore.getState().setWorkflowError(latestRun.error || "Workflow execution failed");
+          } else {
+            useWorkflowStore.getState().setWorkflowError(null);
+          }
         }
       } catch (err) {
         console.error("Error polling run status:", err);
@@ -109,10 +128,10 @@ function WorkflowCanvasInner({ workflowId }: { workflowId: string }) {
 
     // Poll immediately, then every 1500ms
     poll();
-    intervalId = setInterval(poll, 1500);
+    const intervalId = setInterval(poll, 1500);
 
     return () => clearInterval(intervalId);
-  }, [isRunning, workflowId, setIsRunning, setNodeRunning, setNodeError, updateNodeData]);
+  }, [isRunning, workflowId, setIsRunning, setNodeRunning, setNodeError, setNodeErrorMessage, updateNodeData]);
 
   // Handle keyboard shortcuts
   useEffect(() => {
@@ -171,6 +190,24 @@ function WorkflowCanvasInner({ workflowId }: { workflowId: string }) {
     <div className="relative h-full w-full">
       {/* Toolbar */}
       <WorkflowToolbar workflowId={workflowId} />
+
+      {/* Workflow Error Banner */}
+      {workflowError && (
+        <div className="absolute top-16 left-1/2 z-30 w-full max-w-xl -translate-x-1/2 px-4 animate-in fade-in slide-in-from-top-4 duration-250">
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-red-500/20 bg-red-950/90 p-3 shadow-xl shadow-red-950/20 backdrop-blur-md">
+            <div className="flex items-center gap-2.5 text-xs text-red-300 font-medium">
+              <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />
+              <span className="break-words leading-relaxed">{workflowError}</span>
+            </div>
+            <button
+              onClick={() => useWorkflowStore.getState().setWorkflowError(null)}
+              className="rounded-lg p-1 text-red-400/70 transition-colors hover:bg-red-900/40 hover:text-red-300"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="flex h-full">
         {/* Main canvas */}

@@ -182,8 +182,8 @@ async function main() {
     data: {
       userId: "user_placeholder",
       name: "Social Marketing Campaign",
-      nodes: nodes as any,
-      edges: edges as any,
+      nodes: nodes as unknown as object[],
+      edges: edges as unknown as object[],
     },
   });
 

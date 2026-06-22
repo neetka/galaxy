@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
-import { FileInput, Plus, Trash2, Type, Image } from "lucide-react";
+import { FileInput, Plus, Trash2, Type, Image as ImageIcon } from "lucide-react";
 import { BaseNode } from "./base-node";
 import { useWorkflowStore } from "@/stores/workflow-store";
 import type { RequestInputsNodeData, InputField } from "@/types/workflow";
@@ -10,6 +10,8 @@ import type { RequestInputsNodeData, InputField } from "@/types/workflow";
 export function RequestInputsNode({ id, data }: NodeProps) {
   const nodeData = data as unknown as RequestInputsNodeData;
   const updateNodeData = useWorkflowStore((s) => s.updateNodeData);
+  const nodeErrors = useWorkflowStore((s) => s.nodeErrors);
+  const errorMessage = nodeErrors.get(id) || null;
 
   const addField = useCallback(
     (type: "text_field" | "image_field") => {
@@ -53,6 +55,7 @@ export function RequestInputsNode({ id, data }: NodeProps) {
         color="#3b82f6"
         isRunning={nodeData.isRunning}
         hasError={nodeData.hasError}
+        errorMessage={errorMessage}
         isDeletable={false}
       >
         <div className="space-y-2">
@@ -63,7 +66,7 @@ export function RequestInputsNode({ id, data }: NodeProps) {
                   {field.type === "text_field" ? (
                     <Type className="h-3 w-3 text-blue-400" />
                   ) : (
-                    <Image className="h-3 w-3 text-green-400" />
+                    <ImageIcon className="h-3 w-3 text-green-400" />
                   )}
                 </div>
                 <input
@@ -92,11 +95,14 @@ export function RequestInputsNode({ id, data }: NodeProps) {
               ) : (
                 <div className="mt-1 flex h-16 items-center justify-center rounded-lg border border-dashed border-zinc-700 bg-zinc-800/20">
                   {field.value ? (
-                    <img
-                      src={field.value}
-                      alt="uploaded"
-                      className="h-full w-full rounded-lg object-cover"
-                    />
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={field.value}
+                        alt="uploaded"
+                        className="h-full w-full rounded-lg object-cover"
+                      />
+                    </>
                   ) : (
                     <span className="text-xs text-zinc-600">
                       Drop image or click to upload

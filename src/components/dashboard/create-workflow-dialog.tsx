@@ -80,7 +80,7 @@ export function CreateWorkflowDialog({
             <select
               className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-sm text-zinc-300 outline-none transition-colors focus:border-purple-500/50"
               value={template}
-              onChange={(e) => setTemplate(e.target.value as any)}
+              onChange={(e) => setTemplate(e.target.value as "default" | "marketing")}
             >
               <option value="default">Blank Workflow (Request + Response)</option>
               <option value="marketing">Social Marketing Generator (7-node template)</option>

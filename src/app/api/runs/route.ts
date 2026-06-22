@@ -56,7 +56,7 @@ export async function POST(request: Request) {
           targetNodeIds: parsed.data.nodeIds,
           onNodeStart: async (nodeId) => {
             console.log("[api/runs/POST] Node start:", nodeId);
-            const node = parsed.data.nodes.find((n: any) => n.id === nodeId);
+            const node = parsed.data.nodes.find((n: { id: string; type?: string }) => n.id === nodeId);
             await prisma.nodeRun.create({
               data: {
                 runId: run.id,
@@ -77,8 +77,8 @@ export async function POST(request: Request) {
                 data: {
                   status: "success",
                   durationMs: result.durationMs,
-                  input: result.input ? (result.input as any) : undefined,
-                  output: result.output ? (result.output as any) : undefined,
+                  input: result.input ? (result.input as unknown as object) : undefined,
+                  output: result.output ? (result.output as unknown as object) : undefined,
                 },
               });
             }
@@ -104,7 +104,7 @@ export async function POST(request: Request) {
           
           if (nodeType === "requestInputs") {
             const outputs: Record<string, unknown> = {};
-            const fields = (inputs.fields || []) as any[];
+            const fields = (inputs.fields || []) as { id: string; value: unknown; type: string }[];
             for (const f of fields) {
               outputs[f.id] = f.value;
               if (f.type === "image_field") {
@@ -193,7 +193,7 @@ export async function POST(request: Request) {
       });
 
       // Update the workflow's nodes JSON to store the outputs/response in the workflow structure itself so the frontend gets them on load!
-      const finalNodes = parsed.data.nodes.map((node: any) => {
+      const finalNodes = parsed.data.nodes.map((node: { id: string; type: string; data: Record<string, unknown> }) => {
         const nodeRun = nodeRunResults.find((r) => r.nodeId === node.id);
         if (nodeRun) {
           if (node.type === "gemini") {
@@ -239,12 +239,28 @@ export async function POST(request: Request) {
       console.error("[api/runs/POST] Workflow execution failed:", error);
       const durationMs = Date.now() - startTime;
       
-      // Try to get the error message to store in run
+      // Get a clear error message
       let errorMessage = "Unknown error";
       if (error instanceof Error) {
         errorMessage = error.message;
       }
       
+      // Clean up any NodeRun records still stuck in "running" status
+      try {
+        await prisma.nodeRun.updateMany({
+          where: {
+            runId: run.id,
+            status: "running",
+          },
+          data: {
+            status: "failed",
+            error: `Workflow crashed: ${errorMessage}`,
+          },
+        });
+      } catch (cleanupErr) {
+        console.error("[api/runs/POST] Failed to clean up running nodes:", cleanupErr);
+      }
+
       await prisma.workflowRun.update({
         where: { id: run.id },
         data: {

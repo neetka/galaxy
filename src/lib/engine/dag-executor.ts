@@ -76,8 +76,9 @@ export async function executeDAG(
     }
   }
 
-  // Track completed nodes and their outputs
+  // Track completed and failed nodes and their outputs
   const completedNodes = new Set<string>();
+  const failedNodes = new Set<string>();
   const nodeOutputs = new Map<string, Record<string, unknown>>();
 
   // Execute nodes in topological order, parallelizing independent nodes
@@ -112,6 +113,27 @@ export async function executeDAG(
         const node = executionNodes.find((n) => n.id === nodeId);
         if (!node) return;
 
+        // Check if any dependency has failed — skip this node if so
+        const deps = dependencies.get(nodeId) || new Set();
+        const failedDep = [...deps].find((dep) => failedNodes.has(dep));
+        if (failedDep) {
+          const failedDepNode = executionNodes.find((n) => n.id === failedDep);
+          const failedDepLabel = failedDepNode?.data?.label || failedDep;
+          const skipMsg = `Skipped: upstream node "${failedDepLabel}" failed`;
+
+          failedNodes.add(nodeId);
+          const result: NodeRunResult = {
+            nodeId,
+            nodeType: node.type || "",
+            status: "skipped",
+            error: skipMsg,
+            durationMs: 0,
+          };
+          results.push(result);
+          context.onNodeError?.(nodeId, skipMsg);
+          return;
+        }
+
         // Gather inputs from connected edges
         const inputs: Record<string, unknown> = {};
         const incomingEdges = edges.filter((e) => e.target === nodeId);
@@ -124,7 +146,7 @@ export async function executeDAG(
             const sourceNode = nodes.find((n) => n.id === edge.source);
             if (sourceNode) {
               if (sourceNode.type === "requestInputs") {
-                const fields = (sourceNode.data.fields || []) as any[];
+                const fields = (sourceNode.data.fields || []) as { id: string; value: unknown }[];
                 const field = fields.find((f) => f.id === edge.sourceHandle || `${f.id}_image` === edge.sourceHandle);
                 if (field) {
                   inputs[edge.targetHandle] = field.value;
@@ -169,6 +191,8 @@ export async function executeDAG(
         } catch (error) {
           const durationMs = Date.now() - startTime;
           const errorMsg = error instanceof Error ? error.message : "Unknown error";
+
+          failedNodes.add(nodeId);
 
           const result: NodeRunResult = {
             nodeId,
