@@ -61,6 +61,7 @@ function WorkflowCanvasInner({ workflowId }: { workflowId: string }) {
   const setNodeErrorMessage = useWorkflowStore((s) => s.setNodeErrorMessage);
   const updateNodeData = useWorkflowStore((s) => s.updateNodeData);
   const workflowError = useWorkflowStore((s) => s.workflowError);
+  const resetAllRunningNodes = useWorkflowStore((s) => s.resetAllRunningNodes);
 
   // Poll workflow run status in the background when running
   useEffect(() => {
@@ -115,6 +116,7 @@ function WorkflowCanvasInner({ workflowId }: { workflowId: string }) {
 
         if (latestRun.status === "success" || latestRun.status === "failed") {
           setIsRunning(false);
+          resetAllRunningNodes();
           if (latestRun.status === "failed") {
             useWorkflowStore.getState().setWorkflowError(latestRun.error || "Workflow execution failed");
           } else {
@@ -131,7 +133,7 @@ function WorkflowCanvasInner({ workflowId }: { workflowId: string }) {
     const intervalId = setInterval(poll, 1500);
 
     return () => clearInterval(intervalId);
-  }, [isRunning, workflowId, setIsRunning, setNodeRunning, setNodeError, setNodeErrorMessage, updateNodeData]);
+  }, [isRunning, workflowId, setIsRunning, setNodeRunning, setNodeError, setNodeErrorMessage, updateNodeData, resetAllRunningNodes]);
 
   // Handle keyboard shortcuts
   useEffect(() => {
