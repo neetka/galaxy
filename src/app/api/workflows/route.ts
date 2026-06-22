@@ -20,10 +20,23 @@ export async function GET() {
       edges: true,
       createdAt: true,
       updatedAt: true,
+      runs: {
+        take: 1,
+        orderBy: { createdAt: "desc" },
+        select: { status: true },
+      },
     },
   });
 
-  return NextResponse.json(workflows);
+  const formattedWorkflows = workflows.map((w) => {
+    const { runs, ...rest } = w;
+    return {
+      ...rest,
+      lastRunStatus: runs[0]?.status || null,
+    };
+  });
+
+  return NextResponse.json(formattedWorkflows);
 }
 
 // POST /api/workflows — Create a new workflow

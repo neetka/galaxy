@@ -13,6 +13,7 @@ interface Workflow {
   updatedAt: string;
   nodes: unknown[];
   edges: unknown[];
+  lastRunStatus: "success" | "failed" | "partial" | null;
 }
 
 export default function DashboardPage() {
@@ -102,6 +103,7 @@ export default function DashboardPage() {
                   nodeCount={
                     Array.isArray(workflow.nodes) ? workflow.nodes.length : 0
                   }
+                  lastRunStatus={workflow.lastRunStatus ?? undefined}
                   onDelete={handleDelete}
                   onRename={handleRename}
                 />

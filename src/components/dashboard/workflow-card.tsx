@@ -108,14 +108,15 @@ export function WorkflowCard({
         <span>{timeAgo}</span>
         <span className="text-zinc-700">•</span>
         <span>{nodeCount} nodes</span>
-        {lastRunStatus && (
-          <>
-            <span className="text-zinc-700">•</span>
-            <span
-              className={`h-2 w-2 rounded-full ${statusColor[lastRunStatus]}`}
-            />
-          </>
-        )}
+        <span className="text-zinc-700">•</span>
+        <div className="flex items-center gap-1.5">
+          <span
+            className={`h-2 w-2 rounded-full ${
+              lastRunStatus ? statusColor[lastRunStatus] : "bg-zinc-500"
+            }`}
+          />
+          <span className="capitalize">{lastRunStatus || "Draft"}</span>
+        </div>
       </div>
 
       {/* Context menu */}
