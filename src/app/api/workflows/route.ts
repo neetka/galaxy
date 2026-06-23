@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/generated/prisma/client";
 import { createWorkflowSchema } from "@/lib/validations";
 
 // GET /api/workflows — List all workflows for current user
@@ -265,8 +266,8 @@ export async function POST(request: Request) {
     data: {
       userId,
       name: parsed.data.name,
-      nodes,
-      edges,
+      nodes: nodes as unknown as Prisma.InputJsonValue,
+      edges: edges as unknown as Prisma.InputJsonValue,
     },
   });
 
