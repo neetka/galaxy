@@ -32,7 +32,7 @@ export function CustomEdge({
       <path
         d={edgePath}
         fill="none"
-        stroke="rgba(147, 51, 234, 0.15)"
+        stroke="rgba(124, 58, 237, 0.08)"
         strokeWidth={8}
         style={{ filter: "blur(4px)" }}
       />
@@ -41,7 +41,7 @@ export function CustomEdge({
         path={edgePath}
         markerEnd={markerEnd}
         style={{
-          stroke: "hsl(271, 91%, 65%)",
+          stroke: "hsl(263, 70%, 50%)",
           strokeWidth: 2,
           ...style,
         }}

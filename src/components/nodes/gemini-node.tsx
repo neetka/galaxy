@@ -36,17 +36,17 @@ export function GeminiNode({ id, data }: NodeProps) {
     <div>
       {/* Input handles (left side) */}
       <Handle type="target" position={Position.Left} id="prompt" style={{ top: 80 }}
-        className="!w-3 !h-3 !border-2 !border-zinc-600 !bg-zinc-800 hover:!border-purple-500 hover:!bg-purple-500" />
+        className="!w-3 !h-3 !border-2 !border-gray-300 !bg-white hover:!border-purple-500 hover:!bg-purple-500" />
       <Handle type="target" position={Position.Left} id="systemPrompt" style={{ top: 140 }}
-        className="!w-3 !h-3 !border-2 !border-zinc-600 !bg-zinc-800 hover:!border-purple-500 hover:!bg-purple-500" />
+        className="!w-3 !h-3 !border-2 !border-gray-300 !bg-white hover:!border-purple-500 hover:!bg-purple-500" />
       <Handle type="target" position={Position.Left} id="image" style={{ top: 200 }}
-        className="!w-3 !h-3 !border-2 !border-zinc-600 !bg-zinc-800 hover:!border-purple-500 hover:!bg-purple-500" />
+        className="!w-3 !h-3 !border-2 !border-gray-300 !bg-white hover:!border-purple-500 hover:!bg-purple-500" />
       <Handle type="target" position={Position.Left} id="video" style={{ top: 230 }}
-        className="!w-3 !h-3 !border-2 !border-zinc-600 !bg-zinc-800 hover:!border-purple-500 hover:!bg-purple-500" />
+        className="!w-3 !h-3 !border-2 !border-gray-300 !bg-white hover:!border-purple-500 hover:!bg-purple-500" />
       <Handle type="target" position={Position.Left} id="audio" style={{ top: 260 }}
-        className="!w-3 !h-3 !border-2 !border-zinc-600 !bg-zinc-800 hover:!border-purple-500 hover:!bg-purple-500" />
+        className="!w-3 !h-3 !border-2 !border-gray-300 !bg-white hover:!border-purple-500 hover:!bg-purple-500" />
       <Handle type="target" position={Position.Left} id="file" style={{ top: 290 }}
-        className="!w-3 !h-3 !border-2 !border-zinc-600 !bg-zinc-800 hover:!border-purple-500 hover:!bg-purple-500" />
+        className="!w-3 !h-3 !border-2 !border-gray-300 !bg-white hover:!border-purple-500 hover:!bg-purple-500" />
 
       <BaseNode
         label={GEMINI_MODELS.find((m) => m.id === nodeData.model)?.label || "Gemini"}
@@ -57,7 +57,7 @@ export function GeminiNode({ id, data }: NodeProps) {
         errorMessage={errorMessage}
         headerExtra={
           <select
-            className="rounded-lg border border-zinc-700 bg-zinc-800 px-2 py-1 text-[10px] text-zinc-400 outline-none"
+            className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-[10px] text-slate-500 outline-none"
             value={nodeData.model}
             onChange={(e) => updateNodeData(id, { model: e.target.value })}
           >
@@ -71,15 +71,15 @@ export function GeminiNode({ id, data }: NodeProps) {
       >
         {/* Prompt */}
         <div>
-          <label className="mb-1 flex items-center gap-1.5 text-[10px] font-medium text-zinc-500 uppercase">
+          <label className="mb-1 flex items-center gap-1.5 text-[10px] font-medium text-slate-400 uppercase">
             <span className="h-1.5 w-1.5 rounded-full bg-purple-500" />
             Prompt
           </label>
           <textarea
             className={`w-full resize-none rounded-lg border px-3 py-2 text-xs outline-none transition-colors ${
               isPromptConnected
-                ? "border-zinc-800 bg-zinc-800/20 text-zinc-600 cursor-not-allowed"
-                : "border-zinc-700 bg-zinc-800/30 text-zinc-300 placeholder-zinc-600 focus:border-purple-500/50"
+                ? "border-gray-100 bg-gray-50 text-slate-400 cursor-not-allowed"
+                : "border-gray-200 bg-gray-50 text-slate-700 placeholder-slate-400 focus:border-purple-400 focus:bg-white"
             }`}
             rows={3}
             placeholder={isPromptConnected ? "Connected" : "Enter your prompt..."}
@@ -93,15 +93,15 @@ export function GeminiNode({ id, data }: NodeProps) {
 
         {/* System Prompt */}
         <div>
-          <label className="mb-1 flex items-center gap-1.5 text-[10px] font-medium text-zinc-500 uppercase">
+          <label className="mb-1 flex items-center gap-1.5 text-[10px] font-medium text-slate-400 uppercase">
             <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
             System Prompt
           </label>
           <textarea
             className={`w-full resize-none rounded-lg border px-3 py-2 text-xs outline-none transition-colors ${
               isSystemPromptConnected
-                ? "border-zinc-800 bg-zinc-800/20 text-zinc-600 cursor-not-allowed"
-                : "border-zinc-700 bg-zinc-800/30 text-zinc-300 placeholder-zinc-600 focus:border-purple-500/50"
+                ? "border-gray-100 bg-gray-50 text-slate-400 cursor-not-allowed"
+                : "border-gray-200 bg-gray-50 text-slate-700 placeholder-slate-400 focus:border-purple-400 focus:bg-white"
             }`}
             rows={2}
             placeholder={isSystemPromptConnected ? "Connected" : "System instructions..."}
@@ -121,8 +121,8 @@ export function GeminiNode({ id, data }: NodeProps) {
               key={type}
               className={`rounded-md px-2 py-0.5 text-[10px] font-medium ${
                 connectedInputs.includes(type)
-                  ? "bg-purple-500/10 text-purple-400 border border-purple-500/20"
-                  : "bg-zinc-800/50 text-zinc-600 border border-zinc-800"
+                  ? "bg-purple-50 text-purple-600 border border-purple-200"
+                  : "bg-gray-50 text-slate-400 border border-gray-200"
               }`}
             >
               {type}
@@ -134,7 +134,7 @@ export function GeminiNode({ id, data }: NodeProps) {
         {/* Collapsible Settings */}
         <button
           onClick={() => setSettingsOpen(!settingsOpen)}
-          className="flex w-full items-center gap-1.5 rounded-lg py-1 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+          className="flex w-full items-center gap-1.5 rounded-lg py-1 text-xs text-slate-400 hover:text-slate-600 transition-colors"
         >
           {settingsOpen ? (
             <ChevronDown className="h-3 w-3" />
@@ -148,7 +148,7 @@ export function GeminiNode({ id, data }: NodeProps) {
           <div className="space-y-2 animate-fade-in">
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <label className="mb-0.5 block text-[10px] text-zinc-600">
+                <label className="mb-0.5 block text-[10px] text-slate-400">
                   Temp
                 </label>
                 <input
@@ -156,7 +156,7 @@ export function GeminiNode({ id, data }: NodeProps) {
                   step={0.1}
                   min={0}
                   max={2}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-800/30 px-2 py-1 text-xs text-zinc-300 outline-none focus:border-purple-500/50"
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-slate-700 outline-none focus:border-purple-400 focus:bg-white"
                   value={nodeData.temperature}
                   onChange={(e) =>
                     updateNodeData(id, { temperature: Number(e.target.value) })
@@ -164,14 +164,14 @@ export function GeminiNode({ id, data }: NodeProps) {
                 />
               </div>
               <div>
-                <label className="mb-0.5 block text-[10px] text-zinc-600">
+                <label className="mb-0.5 block text-[10px] text-slate-400">
                   Max Tokens
                 </label>
                 <input
                   type="number"
                   step={256}
                   min={1}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-800/30 px-2 py-1 text-xs text-zinc-300 outline-none focus:border-purple-500/50"
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-slate-700 outline-none focus:border-purple-400 focus:bg-white"
                   value={nodeData.maxTokens}
                   onChange={(e) =>
                     updateNodeData(id, { maxTokens: Number(e.target.value) })
@@ -179,7 +179,7 @@ export function GeminiNode({ id, data }: NodeProps) {
                 />
               </div>
               <div>
-                <label className="mb-0.5 block text-[10px] text-zinc-600">
+                <label className="mb-0.5 block text-[10px] text-slate-400">
                   Top P
                 </label>
                 <input
@@ -187,7 +187,7 @@ export function GeminiNode({ id, data }: NodeProps) {
                   step={0.05}
                   min={0}
                   max={1}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-800/30 px-2 py-1 text-xs text-zinc-300 outline-none focus:border-purple-500/50"
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-slate-700 outline-none focus:border-purple-400 focus:bg-white"
                   value={nodeData.topP}
                   onChange={(e) =>
                     updateNodeData(id, { topP: Number(e.target.value) })
@@ -200,11 +200,11 @@ export function GeminiNode({ id, data }: NodeProps) {
 
         {/* Response output */}
         {nodeData.response && (
-          <div className="rounded-xl border border-purple-500/20 bg-purple-500/5 p-3">
-            <p className="text-[10px] font-medium text-purple-400 mb-1">
+          <div className="rounded-xl border border-purple-200 bg-purple-50 p-3">
+            <p className="text-[10px] font-medium text-purple-600 mb-1">
               Response
             </p>
-            <p className="text-xs text-zinc-300 leading-relaxed line-clamp-4">
+            <p className="text-xs text-slate-700 leading-relaxed line-clamp-4">
               {nodeData.response}
             </p>
           </div>
@@ -216,7 +216,7 @@ export function GeminiNode({ id, data }: NodeProps) {
         type="source"
         position={Position.Right}
         id="response"
-        className="!w-3 !h-3 !border-2 !border-zinc-600 !bg-zinc-800 hover:!border-purple-500 hover:!bg-purple-500"
+        className="!w-3 !h-3 !border-2 !border-gray-300 !bg-white hover:!border-purple-500 hover:!bg-purple-500"
         style={{ top: 38 }}
       />
     </div>

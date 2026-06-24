@@ -48,19 +48,19 @@ export function HistoryPanel({ workflowId }: { workflowId: string }) {
   }, [workflowId]);
 
   const statusConfig = {
-    success: { icon: CheckCircle2, color: "text-green-400", bg: "bg-green-500/10", border: "border-green-500/20", label: "Success" },
-    failed: { icon: XCircle, color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/20", label: "Failed" },
-    partial: { icon: AlertTriangle, color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20", label: "Partial" },
+    success: { icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200", label: "Success" },
+    failed: { icon: XCircle, color: "text-red-500", bg: "bg-red-50", border: "border-red-200", label: "Failed" },
+    partial: { icon: AlertTriangle, color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200", label: "Partial" },
   };
 
   return (
-    <div className="h-full w-80 border-l border-zinc-800 bg-zinc-900/50 flex flex-col overflow-hidden">
+    <div className="h-full w-80 border-l border-gray-200/60 bg-white flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3 mt-14">
-        <h3 className="text-sm font-semibold text-zinc-200">Run History</h3>
+      <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 mt-14">
+        <h3 className="text-sm font-semibold text-slate-700">Run History</h3>
         <button
           onClick={() => setHistoryPanelOpen(false)}
-          className="rounded-lg p-1 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300"
+          className="rounded-lg p-1 text-slate-400 hover:bg-gray-100 hover:text-slate-600"
         >
           <X className="h-4 w-4" />
         </button>
@@ -71,20 +71,20 @@ export function HistoryPanel({ workflowId }: { workflowId: string }) {
         {isLoading ? (
           <div className="space-y-2">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-16 animate-pulse rounded-xl bg-zinc-800/50" />
+              <div key={i} className="h-16 animate-pulse rounded-xl bg-gray-100" />
             ))}
           </div>
         ) : fetchError ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <AlertTriangle className="h-8 w-8 text-red-400/60 mb-3" />
-            <p className="text-sm text-zinc-400">Failed to load history</p>
-            <p className="text-xs text-zinc-600 mt-1">Try closing and reopening this panel</p>
+            <p className="text-sm text-slate-500">Failed to load history</p>
+            <p className="text-xs text-slate-400 mt-1">Try closing and reopening this panel</p>
           </div>
         ) : runs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Clock className="h-8 w-8 text-zinc-700 mb-3" />
-            <p className="text-sm text-zinc-500">No runs yet</p>
-            <p className="text-xs text-zinc-700 mt-1">
+            <Clock className="h-8 w-8 text-slate-300 mb-3" />
+            <p className="text-sm text-slate-500">No runs yet</p>
+            <p className="text-xs text-slate-400 mt-1">
               Run your workflow to see history here
             </p>
           </div>
@@ -98,23 +98,23 @@ export function HistoryPanel({ workflowId }: { workflowId: string }) {
               <div key={run.id} className="animate-fade-in">
                 <button
                   onClick={() => setExpandedRun(isExpanded ? null : run.id)}
-                  className={`w-full rounded-xl border ${config.border} ${config.bg} p-3 text-left transition-colors hover:bg-opacity-20`}
+                  className={`w-full rounded-xl border ${config.border} ${config.bg} p-3 text-left transition-colors hover:bg-opacity-70`}
                 >
                   <div className="flex items-center gap-2">
                     <StatusIcon className={`h-4 w-4 ${config.color}`} />
                     <span className={`text-xs font-medium ${config.color}`}>
                       {config.label}
                     </span>
-                    <span className="ml-auto text-[10px] text-zinc-600">
+                    <span className="ml-auto text-[10px] text-slate-400">
                       {run.scope}
                     </span>
                     {isExpanded ? (
-                      <ChevronDown className="h-3 w-3 text-zinc-600" />
+                      <ChevronDown className="h-3 w-3 text-slate-400" />
                     ) : (
-                      <ChevronRight className="h-3 w-3 text-zinc-600" />
+                      <ChevronRight className="h-3 w-3 text-slate-400" />
                     )}
                   </div>
-                  <div className="mt-1 flex items-center gap-3 text-[10px] text-zinc-500">
+                  <div className="mt-1 flex items-center gap-3 text-[10px] text-slate-400">
                     <span>{new Date(run.createdAt).toLocaleTimeString()}</span>
                     {run.durationMs && (
                       <span>{(run.durationMs / 1000).toFixed(1)}s</span>
@@ -129,27 +129,27 @@ export function HistoryPanel({ workflowId }: { workflowId: string }) {
                     {run.nodeRuns.map((nodeRun) => (
                       <div
                         key={nodeRun.id}
-                        className="flex items-center gap-2 rounded-lg bg-zinc-800/30 px-3 py-2"
+                        className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2"
                       >
                         <span
                           className={`h-1.5 w-1.5 rounded-full ${
                             nodeRun.status === "success"
-                              ? "bg-green-400"
+                              ? "bg-emerald-500"
                               : nodeRun.status === "failed"
-                              ? "bg-red-400"
-                              : "bg-zinc-600"
+                              ? "bg-red-500"
+                              : "bg-slate-300"
                           }`}
                         />
-                        <span className="flex-1 text-xs text-zinc-400 truncate">
+                        <span className="flex-1 text-xs text-slate-500 truncate">
                           {nodeRun.nodeType}
                         </span>
                         {nodeRun.durationMs && (
-                          <span className="text-[10px] text-zinc-600">
+                          <span className="text-[10px] text-slate-400">
                             {(nodeRun.durationMs / 1000).toFixed(1)}s
                           </span>
                         )}
                         {nodeRun.error && (
-                          <span className="text-[10px] text-red-400 truncate max-w-[200px]" title={nodeRun.error}>
+                          <span className="text-[10px] text-red-500 truncate max-w-[200px]" title={nodeRun.error}>
                             {nodeRun.error}
                           </span>
                         )}

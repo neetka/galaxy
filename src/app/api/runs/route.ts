@@ -5,6 +5,67 @@ import { triggerRunSchema } from "@/lib/validations";
 import { after } from "next/server";
 import { executeDAG } from "@/lib/engine/dag-executor";
 
+// GET /api/runs — Fetch recent runs and metrics across all user workflows
+export async function GET() {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Get all workflow IDs belonging to this user
+  const workflows = await prisma.workflow.findMany({
+    where: { userId },
+    select: { id: true },
+  });
+
+  const workflowIds = workflows.map((w) => w.id);
+
+  if (workflowIds.length === 0) {
+    return NextResponse.json({
+      recentRuns: [],
+      metrics: { totalRuns: 0, successCount: 0, failedCount: 0, successRate: 0 },
+    });
+  }
+
+  // Fetch recent runs across all workflows
+  const recentRuns = await prisma.workflowRun.findMany({
+    where: { workflowId: { in: workflowIds } },
+    orderBy: { createdAt: "desc" },
+    take: 10,
+    include: {
+      workflow: { select: { name: true } },
+    },
+  });
+
+  // Aggregate metrics
+  const totalRuns = await prisma.workflowRun.count({
+    where: { workflowId: { in: workflowIds } },
+  });
+
+  const successCount = await prisma.workflowRun.count({
+    where: { workflowId: { in: workflowIds }, status: "success" },
+  });
+
+  const failedCount = await prisma.workflowRun.count({
+    where: { workflowId: { in: workflowIds }, status: "failed" },
+  });
+
+  const successRate = totalRuns > 0 ? Math.round((successCount / totalRuns) * 100) : 0;
+
+  return NextResponse.json({
+    recentRuns: recentRuns.map((r) => ({
+      id: r.id,
+      workflowId: r.workflowId,
+      workflowName: r.workflow.name,
+      status: r.status,
+      scope: r.scope,
+      durationMs: r.durationMs,
+      createdAt: r.createdAt,
+    })),
+    metrics: { totalRuns, successCount, failedCount, successRate },
+  });
+}
+
 // POST /api/runs — Trigger a workflow execution
 export async function POST(request: Request) {
   const { userId } = await auth();

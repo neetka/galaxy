@@ -18,7 +18,7 @@ export function ResponseNode({ id, data }: NodeProps) {
         type="target"
         position={Position.Left}
         id="result"
-        className="!w-3 !h-3 !border-2 !border-zinc-600 !bg-zinc-800 hover:!border-green-500 hover:!bg-green-500"
+        className="!w-3 !h-3 !border-2 !border-gray-300 !bg-white hover:!border-green-500 hover:!bg-green-500"
         style={{ top: 38 }}
       />
 
@@ -32,19 +32,19 @@ export function ResponseNode({ id, data }: NodeProps) {
         isDeletable={false}
       >
         {/* Result display */}
-        <div className="min-h-[60px] rounded-xl border border-zinc-800 bg-zinc-800/20 p-3">
+        <div className="min-h-[60px] rounded-xl border border-gray-200 bg-gray-50 p-3">
           {nodeData.result ? (
             <div>
-              <p className="text-[10px] font-medium text-green-400 mb-1.5">
+              <p className="text-[10px] font-medium text-emerald-600 mb-1.5">
                 Output
               </p>
-              <p className="text-xs text-zinc-300 leading-relaxed whitespace-pre-wrap">
+              <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
                 {nodeData.result}
               </p>
             </div>
           ) : (
             <div className="flex h-full items-center justify-center">
-              <p className="text-xs text-zinc-600">
+              <p className="text-xs text-slate-400">
                 Connect a result input to see the workflow output
               </p>
             </div>

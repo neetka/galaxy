@@ -136,23 +136,23 @@ export function WorkflowToolbar({ workflowId }: WorkflowToolbarProps) {
   };
 
   return (
-    <div className="absolute left-0 right-0 top-0 z-20 flex h-14 items-center justify-between border-b border-zinc-800/50 bg-[#09090b]/80 px-4 backdrop-blur-xl">
+    <div className="absolute left-0 right-0 top-0 z-20 flex h-14 items-center justify-between border-b border-gray-200/60 bg-white/80 px-4 backdrop-blur-xl">
       {/* Left */}
       <div className="flex items-center gap-3">
         <button
           onClick={() => router.push("/dashboard")}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-200"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-gray-100 hover:text-slate-700"
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
 
-        <div className="h-5 w-px bg-zinc-800" />
+        <div className="h-5 w-px bg-gray-200" />
 
         {isEditing ? (
           <div className="flex items-center gap-1">
             <input
               autoFocus
-              className="rounded-lg border border-purple-500/50 bg-zinc-800 px-2 py-1 text-sm font-medium text-zinc-50 outline-none"
+              className="rounded-lg border border-purple-400 bg-purple-50 px-2 py-1 text-sm font-medium text-slate-800 outline-none"
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
               onBlur={handleRename}
@@ -166,7 +166,7 @@ export function WorkflowToolbar({ workflowId }: WorkflowToolbarProps) {
             />
             <button
               onClick={handleRename}
-              className="rounded-lg p-1 text-green-500 hover:bg-zinc-800"
+              className="rounded-lg p-1 text-green-600 hover:bg-green-50"
             >
               <Check className="h-3.5 w-3.5" />
             </button>
@@ -177,12 +177,12 @@ export function WorkflowToolbar({ workflowId }: WorkflowToolbarProps) {
               setEditName(workflowName);
               setIsEditing(true);
             }}
-            className="group flex items-center gap-2 rounded-lg px-2 py-1 transition-colors hover:bg-zinc-800/50"
+            className="group flex items-center gap-2 rounded-lg px-2 py-1 transition-colors hover:bg-gray-100"
           >
-            <span className="text-sm font-medium text-zinc-200">
+            <span className="text-sm font-medium text-slate-700">
               {workflowName}
             </span>
-            <Pencil className="h-3 w-3 text-zinc-600 opacity-0 transition-opacity group-hover:opacity-100" />
+            <Pencil className="h-3 w-3 text-slate-400 opacity-0 transition-opacity group-hover:opacity-100" />
           </button>
         )}
       </div>
@@ -191,27 +191,27 @@ export function WorkflowToolbar({ workflowId }: WorkflowToolbarProps) {
       <div className="flex items-center gap-2">
         <button
           onClick={handleImport}
-          className="flex h-8 items-center gap-1.5 rounded-lg border border-zinc-800 px-3 text-xs font-medium text-zinc-400 transition-all hover:border-zinc-700 hover:text-zinc-200"
+          className="flex h-8 items-center gap-1.5 rounded-lg border border-gray-200 px-3 text-xs font-medium text-slate-500 transition-all hover:border-gray-300 hover:text-slate-700"
           title="Import"
         >
           <Upload className="h-3.5 w-3.5" />
         </button>
         <button
           onClick={handleExport}
-          className="flex h-8 items-center gap-1.5 rounded-lg border border-zinc-800 px-3 text-xs font-medium text-zinc-400 transition-all hover:border-zinc-700 hover:text-zinc-200"
+          className="flex h-8 items-center gap-1.5 rounded-lg border border-gray-200 px-3 text-xs font-medium text-slate-500 transition-all hover:border-gray-300 hover:text-slate-700"
           title="Export"
         >
           <Download className="h-3.5 w-3.5" />
         </button>
 
-        <div className="h-5 w-px bg-zinc-800" />
+        <div className="h-5 w-px bg-gray-200" />
 
         <button
           onClick={toggleHistoryPanel}
           className={`flex h-8 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-all ${
             isHistoryPanelOpen
-              ? "border-purple-500/30 bg-purple-500/10 text-purple-400"
-              : "border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+              ? "border-purple-200 bg-purple-50 text-purple-600"
+              : "border-gray-200 text-slate-500 hover:border-gray-300 hover:text-slate-700"
           }`}
         >
           <History className="h-3.5 w-3.5" />
@@ -223,8 +223,8 @@ export function WorkflowToolbar({ workflowId }: WorkflowToolbarProps) {
           disabled={isSaving}
           className={`flex h-8 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-all disabled:opacity-50 ${
             saveStatus === "error"
-              ? "border-red-500/50 text-red-400 hover:border-red-500/70"
-              : "border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+              ? "border-red-200 text-red-500 hover:border-red-300"
+              : "border-gray-200 text-slate-500 hover:border-gray-300 hover:text-slate-700"
           }`}
         >
           {isSaving ? (
@@ -238,7 +238,7 @@ export function WorkflowToolbar({ workflowId }: WorkflowToolbarProps) {
         <button
           onClick={handleRun}
           disabled={isRunning}
-          className="flex h-8 items-center gap-1.5 rounded-xl bg-purple-600 px-4 text-xs font-semibold text-white shadow-lg shadow-purple-600/20 transition-all hover:bg-purple-500 disabled:opacity-50"
+          className="flex h-8 items-center gap-1.5 rounded-xl bg-purple-600 px-4 text-xs font-semibold text-white shadow-sm transition-all hover:bg-purple-500 disabled:opacity-50"
         >
           {isRunning ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />

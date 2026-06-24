@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { MoreHorizontal, Pencil, Trash2, Clock } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 interface WorkflowCardProps {
@@ -30,6 +30,8 @@ export function WorkflowCard({
   const inputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  const [now, setNow] = useState<number>(0);
+
   useEffect(() => {
     if (isRenaming && inputRef.current) {
       inputRef.current.focus();
@@ -38,6 +40,8 @@ export function WorkflowCard({
   }, [isRenaming]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setNow(Date.now());
     function handleClickOutside(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setMenuOpen(false);
@@ -54,28 +58,34 @@ export function WorkflowCard({
     setIsRenaming(false);
   };
 
-  const statusColor = {
-    success: "bg-green-500",
-    failed: "bg-red-500",
-    partial: "bg-yellow-500",
+  const statusLabel: Record<string, string> = {
+    success: "Passed",
+    failed: "Failed",
+    partial: "Partial",
   };
 
-  const timeAgo = getTimeAgo(new Date(updatedAt));
+  const statusDot: Record<string, string> = {
+    success: "bg-emerald-500",
+    failed: "bg-red-500",
+    partial: "bg-amber-500",
+  };
+
+  const timeAgo = getTimeAgo(new Date(updatedAt), now);
 
   return (
     <div
-      className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 transition-all duration-300 hover:border-zinc-700 hover:bg-zinc-900/80 hover:shadow-lg hover:shadow-purple-900/10 cursor-pointer"
+      className="group relative flex flex-col rounded-xl border border-gray-200/60 bg-white p-4 transition-all duration-150 hover:border-gray-300 hover:shadow-md cursor-pointer"
       onClick={() => !isRenaming && router.push(`/workflow/${id}`)}
     >
       {/* Canvas preview placeholder */}
-      <div className="mb-4 flex h-32 items-center justify-center rounded-xl bg-zinc-800/50 border border-zinc-800">
-        <div className="flex gap-2">
+      <div className="mb-3 flex h-24 items-center justify-center rounded-lg bg-gray-50 border border-gray-100">
+        <div className="flex gap-1.5">
           {Array.from({ length: Math.min(nodeCount, 4) }).map((_, i) => (
             <div
               key={i}
-              className="h-8 w-14 rounded-lg bg-zinc-700/50 border border-zinc-700"
+              className="h-6 w-10 rounded bg-gray-200/60 border border-gray-200"
               style={{
-                transform: `translateY(${i % 2 === 0 ? -4 : 4}px)`,
+                transform: `translateY(${i % 2 === 0 ? -3 : 3}px)`,
               }}
             />
           ))}
@@ -86,7 +96,7 @@ export function WorkflowCard({
       {isRenaming ? (
         <input
           ref={inputRef}
-          className="mb-1 rounded-lg border border-purple-500/50 bg-zinc-800 px-2 py-1 text-sm font-medium text-zinc-50 outline-none focus:border-purple-500"
+          className="mb-1.5 rounded-md border border-purple-400 bg-purple-50 px-2 py-1 text-[13px] font-medium text-slate-800 outline-none focus:border-purple-500"
           value={editName}
           onChange={(e) => setEditName(e.target.value)}
           onBlur={handleRename}
@@ -97,61 +107,60 @@ export function WorkflowCard({
           onClick={(e) => e.stopPropagation()}
         />
       ) : (
-        <h3 className="mb-1 text-sm font-semibold text-zinc-100 truncate">
+        <h3 className="mb-1.5 text-[13px] font-medium text-slate-800 truncate">
           {name}
         </h3>
       )}
 
       {/* Meta */}
-      <div className="flex items-center gap-2 text-xs text-zinc-500">
-        <Clock className="h-3 w-3" />
+      <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
         <span>{timeAgo}</span>
-        <span className="text-zinc-700">•</span>
+        <span className="text-slate-300">·</span>
         <span>{nodeCount} nodes</span>
-        <span className="text-zinc-700">•</span>
-        <div className="flex items-center gap-1.5">
+        <span className="text-slate-300">·</span>
+        <div className="flex items-center gap-1">
           <span
-            className={`h-2 w-2 rounded-full ${
-              lastRunStatus ? statusColor[lastRunStatus] : "bg-zinc-500"
+            className={`h-1.5 w-1.5 rounded-full ${
+              lastRunStatus ? statusDot[lastRunStatus] : "bg-slate-300"
             }`}
           />
-          <span className="capitalize">{lastRunStatus || "Draft"}</span>
+          <span>{lastRunStatus ? statusLabel[lastRunStatus] : "Draft"}</span>
         </div>
       </div>
 
       {/* Context menu */}
-      <div ref={menuRef} className="absolute right-3 top-3">
+      <div ref={menuRef} className="absolute right-2.5 top-2.5">
         <button
-          className="rounded-lg p-1.5 text-zinc-600 opacity-0 transition-all duration-200 hover:bg-zinc-800 hover:text-zinc-300 group-hover:opacity-100"
+          className="rounded-md p-1 text-slate-400 opacity-0 transition-all duration-150 hover:bg-gray-100 hover:text-slate-600 group-hover:opacity-100"
           onClick={(e) => {
             e.stopPropagation();
             setMenuOpen(!menuOpen);
           }}
         >
-          <MoreHorizontal className="h-4 w-4" />
+          <MoreHorizontal className="h-3.5 w-3.5" />
         </button>
         {menuOpen && (
-          <div className="absolute right-0 top-8 z-50 w-36 animate-fade-in rounded-xl border border-zinc-700 bg-zinc-900 py-1 shadow-xl">
+          <div className="absolute right-0 top-7 z-50 w-32 animate-fade-in rounded-lg border border-gray-200 bg-white py-0.5 shadow-lg">
             <button
-              className="flex w-full items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100"
+              className="flex w-full items-center gap-2 px-3 py-1.5 text-[12px] text-slate-500 hover:bg-gray-50 hover:text-slate-700 transition-colors"
               onClick={(e) => {
                 e.stopPropagation();
                 setMenuOpen(false);
                 setIsRenaming(true);
               }}
             >
-              <Pencil className="h-3.5 w-3.5" />
+              <Pencil className="h-3 w-3" />
               Rename
             </button>
             <button
-              className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-950/30 hover:text-red-300"
+              className="flex w-full items-center gap-2 px-3 py-1.5 text-[12px] text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors"
               onClick={(e) => {
                 e.stopPropagation();
                 setMenuOpen(false);
                 onDelete(id);
               }}
             >
-              <Trash2 className="h-3.5 w-3.5" />
+              <Trash2 className="h-3 w-3" />
               Delete
             </button>
           </div>
@@ -161,8 +170,9 @@ export function WorkflowCard({
   );
 }
 
-function getTimeAgo(date: Date): string {
-  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+function getTimeAgo(date: Date, now: number): string {
+  if (!now) return "—";
+  const seconds = Math.floor((now - date.getTime()) / 1000);
   if (seconds < 60) return "just now";
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
   if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;

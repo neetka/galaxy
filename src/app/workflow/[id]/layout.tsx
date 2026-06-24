@@ -4,7 +4,7 @@ export default function WorkflowLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="h-screen w-screen overflow-hidden bg-[#09090b]">
+    <div className="h-screen w-screen overflow-hidden bg-background">
       {children}
     </div>
   );

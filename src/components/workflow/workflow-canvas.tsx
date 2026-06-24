@@ -196,14 +196,14 @@ function WorkflowCanvasInner({ workflowId }: { workflowId: string }) {
       {/* Workflow Error Banner */}
       {workflowError && (
         <div className="absolute top-16 left-1/2 z-30 w-full max-w-xl -translate-x-1/2 px-4 animate-in fade-in slide-in-from-top-4 duration-250">
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-red-500/20 bg-red-950/90 p-3 shadow-xl shadow-red-950/20 backdrop-blur-md">
-            <div className="flex items-center gap-2.5 text-xs text-red-300 font-medium">
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-3 shadow-md backdrop-blur-md">
+            <div className="flex items-center gap-2.5 text-xs text-red-600 font-medium">
               <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />
               <span className="break-words leading-relaxed">{workflowError}</span>
             </div>
             <button
               onClick={() => useWorkflowStore.getState().setWorkflowError(null)}
-              className="rounded-lg p-1 text-red-400/70 transition-colors hover:bg-red-900/40 hover:text-red-300"
+              className="rounded-lg p-1 text-red-400 transition-colors hover:bg-red-100 hover:text-red-600"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -231,20 +231,20 @@ function WorkflowCanvasInner({ workflowId }: { workflowId: string }) {
             defaultEdgeOptions={{
               type: "custom",
               animated: true,
-              style: { stroke: "hsl(271, 91%, 65%)", strokeWidth: 2 },
+              style: { stroke: "hsl(263, 70%, 50%)", strokeWidth: 2 },
             }}
             fitView
             fitViewOptions={{ padding: 0.2 }}
             deleteKeyCode={null} // We handle delete manually
             multiSelectionKeyCode="Shift"
-            className="bg-[#09090b]"
+            className="bg-[#f4f4f7]"
             proOptions={{ hideAttribution: true }}
           >
             <Background
               variant={BackgroundVariant.Dots}
               gap={20}
               size={1}
-              color="#333"
+              color="#d1d5db"
             />
             <Controls
               position="bottom-left"

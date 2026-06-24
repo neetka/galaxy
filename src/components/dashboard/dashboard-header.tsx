@@ -1,7 +1,7 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
-import { Plus, Upload, Workflow } from "lucide-react";
+import { Plus, Workflow } from "lucide-react";
 
 interface DashboardHeaderProps {
   onCreateWorkflow: () => void;
@@ -9,39 +9,32 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ onCreateWorkflow }: DashboardHeaderProps) {
   return (
-    <header className="sticky top-0 z-40 border-b border-zinc-800 bg-[#09090b]/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+    <header className="sticky top-0 z-40 border-b border-gray-200/60 bg-white/80 backdrop-blur-lg">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
         {/* Logo */}
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-purple-400">
-            <Workflow className="h-5 w-5 text-white" />
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-600">
+            <Workflow className="h-3.5 w-3.5 text-white" />
           </div>
-          <h1 className="text-lg font-semibold tracking-tight text-zinc-50">
+          <span className="text-[15px] font-semibold tracking-tight text-slate-900">
             Galaxy
-          </h1>
+          </span>
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-3">
-          <button
-            className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900/50 px-4 py-2 text-sm font-medium text-zinc-300 transition-all duration-200 hover:border-zinc-600 hover:bg-zinc-800 hover:text-zinc-100"
-            title="Import workflow"
-          >
-            <Upload className="h-4 w-4" />
-            Import
-          </button>
+        <div className="flex items-center gap-2">
           <button
             onClick={onCreateWorkflow}
-            className="flex items-center gap-2 rounded-xl bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-purple-600/20 transition-all duration-200 hover:bg-purple-500 hover:shadow-purple-500/30 active:scale-[0.98]"
+            className="flex items-center gap-1.5 rounded-lg bg-purple-600 px-3 py-1.5 text-[13px] font-medium text-white transition-all duration-150 hover:bg-purple-500 active:scale-[0.97] shadow-sm"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-3.5 w-3.5" />
             New Workflow
           </button>
-          <div className="ml-2 pl-3 border-l border-zinc-800">
+          <div className="ml-1.5 pl-2.5 border-l border-gray-200/60">
             <UserButton
               appearance={{
                 elements: {
-                  avatarBox: "h-8 w-8 rounded-full ring-2 ring-zinc-700 hover:ring-purple-500 transition-all",
+                  avatarBox: "h-7 w-7 rounded-full ring-1 ring-gray-200 hover:ring-gray-300 transition-all",
                 },
               }}
             />

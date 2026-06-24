@@ -75,10 +75,10 @@ export function NodePicker() {
       <div className="absolute bottom-6 left-1/2 z-30 -translate-x-1/2">
         <button
           onClick={toggleNodePicker}
-          className={`flex h-12 w-12 items-center justify-center rounded-2xl shadow-2xl transition-all duration-300 ${
+          className={`flex h-12 w-12 items-center justify-center rounded-2xl shadow-lg transition-all duration-300 ${
             isOpen
-              ? "rotate-45 bg-zinc-700 text-zinc-300"
-              : "bg-purple-600 text-white shadow-purple-600/30 hover:bg-purple-500 hover:shadow-purple-500/40 hover:scale-110"
+              ? "rotate-45 bg-slate-200 text-slate-500"
+              : "bg-purple-600 text-white shadow-purple-600/20 hover:bg-purple-500 hover:shadow-purple-500/30 hover:scale-110"
           }`}
         >
           <Plus className="h-6 w-6" />
@@ -89,14 +89,14 @@ export function NodePicker() {
       {isOpen && (
         <div
           ref={pickerRef}
-          className="absolute bottom-20 left-1/2 z-30 w-[420px] -translate-x-1/2 animate-slide-up rounded-2xl border border-zinc-700 bg-zinc-900 shadow-2xl shadow-black/50"
+          className="absolute bottom-20 left-1/2 z-30 w-[420px] -translate-x-1/2 animate-slide-up rounded-2xl border border-gray-200 bg-white shadow-xl"
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
-            <h3 className="text-sm font-semibold text-zinc-200">Add Node</h3>
+          <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+            <h3 className="text-sm font-semibold text-slate-700">Add Node</h3>
             <button
               onClick={() => setNodePickerOpen(false)}
-              className="rounded-lg p-1 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300"
+              className="rounded-lg p-1 text-slate-400 hover:bg-gray-100 hover:text-slate-600"
             >
               <X className="h-4 w-4" />
             </button>
@@ -105,10 +105,10 @@ export function NodePicker() {
           {/* Search */}
           <div className="px-4 py-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-600" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 autoFocus
-                className="w-full rounded-xl border border-zinc-700 bg-zinc-800/50 py-2.5 pl-10 pr-4 text-sm text-zinc-200 placeholder-zinc-600 outline-none transition-colors focus:border-purple-500/50"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 placeholder-slate-400 outline-none transition-colors focus:border-purple-400 focus:bg-white"
                 placeholder="Search nodes..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -122,8 +122,8 @@ export function NodePicker() {
               onClick={() => setActiveCategory(null)}
               className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                 !activeCategory
-                  ? "bg-purple-600/20 text-purple-400 border border-purple-500/30"
-                  : "text-zinc-500 hover:text-zinc-300 border border-zinc-800 hover:border-zinc-700"
+                  ? "bg-purple-50 text-purple-600 border border-purple-200"
+                  : "text-slate-500 hover:text-slate-700 border border-gray-200 hover:border-gray-300"
               }`}
             >
               All
@@ -134,8 +134,8 @@ export function NodePicker() {
                 onClick={() => setActiveCategory(cat === activeCategory ? null : cat)}
                 className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                   activeCategory === cat
-                    ? "bg-purple-600/20 text-purple-400 border border-purple-500/30"
-                    : "text-zinc-500 hover:text-zinc-300 border border-zinc-800 hover:border-zinc-700"
+                    ? "bg-purple-50 text-purple-600 border border-purple-200"
+                    : "text-slate-500 hover:text-slate-700 border border-gray-200 hover:border-gray-300"
                 }`}
               >
                 {CATEGORY_LABELS[cat] || cat}
@@ -146,7 +146,7 @@ export function NodePicker() {
           {/* Node list */}
           <div className="max-h-[280px] overflow-y-auto px-3 pb-3">
             {filteredNodes.length === 0 ? (
-              <div className="py-8 text-center text-sm text-zinc-600">
+              <div className="py-8 text-center text-sm text-slate-400">
                 No nodes found
               </div>
             ) : (
@@ -209,17 +209,17 @@ function NodePickerItem({
       draggable
       onDragStart={(e) => onDragStart(e, node.type)}
       onClick={onClick}
-      className="flex cursor-grab items-center gap-3 rounded-xl p-3 transition-colors hover:bg-zinc-800/70 active:cursor-grabbing"
+      className="flex cursor-grab items-center gap-3 rounded-xl p-3 transition-colors hover:bg-gray-50 active:cursor-grabbing"
     >
       <div
         className="flex h-10 w-10 items-center justify-center rounded-xl"
-        style={{ backgroundColor: `${node.color}20`, color: node.color }}
+        style={{ backgroundColor: `${node.color}12`, color: node.color }}
       >
         {ICONS[node.icon]}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-zinc-200">{node.label}</p>
-        <p className="text-xs text-zinc-500 truncate">{node.description}</p>
+        <p className="text-sm font-medium text-slate-700">{node.label}</p>
+        <p className="text-xs text-slate-400 truncate">{node.description}</p>
       </div>
     </div>
   );

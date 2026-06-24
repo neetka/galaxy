@@ -35,7 +35,7 @@ export function CropImageNode({ id, data }: NodeProps) {
         type="target"
         position={Position.Left}
         id="inputImage"
-        className="!w-3 !h-3 !border-2 !border-zinc-600 !bg-zinc-800 hover:!border-orange-500 hover:!bg-orange-500"
+        className="!w-3 !h-3 !border-2 !border-gray-300 !bg-white hover:!border-orange-500 hover:!bg-orange-500"
         style={{ top: 38 }}
       />
 
@@ -48,7 +48,7 @@ export function CropImageNode({ id, data }: NodeProps) {
         errorMessage={errorMessage}
       >
         {/* Image preview / placeholder */}
-        <div className="flex h-20 items-center justify-center rounded-xl border border-dashed border-zinc-700 bg-zinc-800/30">
+        <div className="flex h-20 items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50">
           {nodeData.inputImage ? (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -59,7 +59,7 @@ export function CropImageNode({ id, data }: NodeProps) {
               />
             </>
           ) : (
-            <span className="text-xs text-zinc-600">
+            <span className="text-xs text-slate-400">
               {connectedInputs.includes("inputImage")
                 ? "Connected — waiting for data"
                 : "Connect an image input"}
@@ -77,9 +77,9 @@ export function CropImageNode({ id, data }: NodeProps) {
                   type="target"
                   position={Position.Left}
                   id={handleId}
-                  className="!w-2.5 !h-2.5 !border-2 !border-zinc-600 !bg-zinc-800 hover:!border-orange-500 hover:!bg-orange-500"
+                  className="!w-2.5 !h-2.5 !border-2 !border-gray-300 !bg-white hover:!border-orange-500 hover:!bg-orange-500"
                 />
-                <label className="mb-1 block text-[10px] font-medium text-zinc-500 uppercase">
+                <label className="mb-1 block text-[10px] font-medium text-slate-400 uppercase">
                   {label}
                 </label>
                 <input
@@ -88,8 +88,8 @@ export function CropImageNode({ id, data }: NodeProps) {
                   max={100}
                   className={`w-full rounded-lg border px-2.5 py-1.5 text-xs outline-none transition-colors ${
                     isConnected
-                      ? "border-zinc-800 bg-zinc-800/20 text-zinc-600 cursor-not-allowed"
-                      : "border-zinc-700 bg-zinc-800/30 text-zinc-300 focus:border-orange-500/50"
+                      ? "border-gray-100 bg-gray-50 text-slate-400 cursor-not-allowed"
+                      : "border-gray-200 bg-gray-50 text-slate-700 focus:border-orange-400 focus:bg-white"
                   }`}
                   value={nodeData[key]}
                   onChange={(e) =>
@@ -105,10 +105,10 @@ export function CropImageNode({ id, data }: NodeProps) {
 
         {/* Output preview */}
         {!!nodeData.output && (
-          <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-2">
-            <p className="text-[10px] font-medium text-green-400 mb-1">Output</p>
-            <div className="h-16 rounded-lg bg-zinc-800/50 flex items-center justify-center">
-              <span className="text-xs text-zinc-500">Cropped image ready</span>
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-2">
+            <p className="text-[10px] font-medium text-emerald-600 mb-1">Output</p>
+            <div className="h-16 rounded-lg bg-white flex items-center justify-center border border-emerald-100">
+              <span className="text-xs text-slate-500">Cropped image ready</span>
             </div>
           </div>
         )}
@@ -119,7 +119,7 @@ export function CropImageNode({ id, data }: NodeProps) {
         type="source"
         position={Position.Right}
         id="outputImage"
-        className="!w-3 !h-3 !border-2 !border-zinc-600 !bg-zinc-800 hover:!border-orange-500 hover:!bg-orange-500"
+        className="!w-3 !h-3 !border-2 !border-gray-300 !bg-white hover:!border-orange-500 hover:!bg-orange-500"
         style={{ top: 38 }}
       />
     </div>

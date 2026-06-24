@@ -61,23 +61,23 @@ export function RequestInputsNode({ id, data }: NodeProps) {
         <div className="space-y-2">
           {nodeData.fields.map((field) => (
             <div key={field.id} className="group relative">
-              <div className="flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-800/30 p-2.5">
-                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-zinc-700/50">
+              <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 p-2.5">
+                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-white border border-gray-200">
                   {field.type === "text_field" ? (
-                    <Type className="h-3 w-3 text-blue-400" />
+                    <Type className="h-3 w-3 text-blue-500" />
                   ) : (
-                    <ImageIcon className="h-3 w-3 text-green-400" />
+                    <ImageIcon className="h-3 w-3 text-green-500" />
                   )}
                 </div>
                 <input
-                  className="flex-1 bg-transparent text-xs text-zinc-300 outline-none placeholder-zinc-600"
+                  className="flex-1 bg-transparent text-xs text-slate-700 outline-none placeholder-slate-400"
                   value={field.name}
                   onChange={(e) => updateField(field.id, { name: e.target.value })}
                   placeholder="Field name"
                 />
                 <button
                   onClick={() => removeField(field.id)}
-                  className="rounded p-0.5 text-zinc-600 opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
+                  className="rounded p-0.5 text-slate-400 opacity-0 transition-opacity hover:text-red-500 group-hover:opacity-100"
                 >
                   <Trash2 className="h-3 w-3" />
                 </button>
@@ -86,14 +86,14 @@ export function RequestInputsNode({ id, data }: NodeProps) {
               {/* Field value input */}
               {field.type === "text_field" ? (
                 <textarea
-                  className="mt-1 w-full resize-none rounded-lg border border-zinc-800 bg-zinc-800/20 px-3 py-2 text-xs text-zinc-400 outline-none placeholder-zinc-700 focus:border-blue-500/30"
+                  className="mt-1 w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-slate-600 outline-none placeholder-slate-400 focus:border-blue-400"
                   rows={2}
                   placeholder="Enter text..."
                   value={field.value}
                   onChange={(e) => updateField(field.id, { value: e.target.value })}
                 />
               ) : (
-                <div className="mt-1 flex h-16 items-center justify-center rounded-lg border border-dashed border-zinc-700 bg-zinc-800/20">
+                <div className="mt-1 flex h-16 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50">
                   {field.value ? (
                     <>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -104,7 +104,7 @@ export function RequestInputsNode({ id, data }: NodeProps) {
                       />
                     </>
                   ) : (
-                    <span className="text-xs text-zinc-600">
+                    <span className="text-xs text-slate-400">
                       Drop image or click to upload
                     </span>
                   )}
@@ -116,7 +116,7 @@ export function RequestInputsNode({ id, data }: NodeProps) {
                 type="source"
                 position={Position.Right}
                 id={`${field.id}${field.type === "image_field" ? "_image" : ""}`}
-                className="!w-3 !h-3 !border-2 !border-zinc-600 !bg-zinc-800 hover:!border-blue-500 hover:!bg-blue-500"
+                className="!w-3 !h-3 !border-2 !border-gray-300 !bg-white hover:!border-blue-500 hover:!bg-blue-500"
                 style={{ top: "50%" }}
               />
             </div>
@@ -127,14 +127,14 @@ export function RequestInputsNode({ id, data }: NodeProps) {
         <div className="flex gap-2 pt-1">
           <button
             onClick={() => addField("text_field")}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-dashed border-zinc-700 py-2 text-xs text-zinc-500 transition-colors hover:border-blue-500/30 hover:text-blue-400"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-dashed border-gray-300 py-2 text-xs text-slate-400 transition-colors hover:border-blue-400 hover:text-blue-500"
           >
             <Plus className="h-3 w-3" />
             Text
           </button>
           <button
             onClick={() => addField("image_field")}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-dashed border-zinc-700 py-2 text-xs text-zinc-500 transition-colors hover:border-green-500/30 hover:text-green-400"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-dashed border-gray-300 py-2 text-xs text-slate-400 transition-colors hover:border-green-400 hover:text-green-500"
           >
             <Plus className="h-3 w-3" />
             Image

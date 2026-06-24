@@ -41,10 +41,10 @@ export default function WorkflowPage({
 
   if (error) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex h-screen items-center justify-center bg-[#f8f9fb]">
         <div className="text-center">
-          <h2 className="text-lg font-semibold text-zinc-100 mb-2">Error</h2>
-          <p className="text-sm text-zinc-500">{error}</p>
+          <h2 className="text-lg font-semibold text-slate-800 mb-2">Error</h2>
+          <p className="text-sm text-slate-500">{error}</p>
         </div>
       </div>
     );
@@ -52,10 +52,10 @@ export default function WorkflowPage({
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex h-screen items-center justify-center bg-[#f8f9fb]">
         <div className="flex flex-col items-center gap-4">
           <div className="h-10 w-10 animate-spin rounded-full border-2 border-purple-500 border-t-transparent" />
-          <p className="text-sm text-zinc-500">Loading workflow...</p>
+          <p className="text-sm text-slate-500">Loading workflow...</p>
         </div>
       </div>
     );

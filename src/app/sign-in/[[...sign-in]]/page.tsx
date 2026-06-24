@@ -2,13 +2,13 @@ import { SignIn } from "@clerk/nextjs";
 
 export default function SignInPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#09090b]">
+    <div className="flex min-h-screen items-center justify-center bg-[#f8f9fb]">
       <div className="animate-fade-in">
         <SignIn
           appearance={{
             elements: {
               rootBox: "mx-auto",
-              card: "bg-[#1a1a2e] border-zinc-800",
+              card: "bg-white border-gray-200 shadow-lg",
             },
           }}
         />
