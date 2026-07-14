@@ -8,11 +8,11 @@ import { useWorkflowStore } from "@/stores/workflow-store";
 import type { GeminiNodeData } from "@/types/workflow";
 
 const GEMINI_MODELS = [
-  { id: "gemini-2.0-flash", label: "Gemini 2.0 Flash (Free Tier)" },
-  { id: "gemini-2.5-pro", label: "Gemini 2.5 Pro" },
-  { id: "gemini-3.1-pro", label: "Gemini 3.1 Pro (Experimental)" },
-  { id: "gemini-1.5-pro", label: "Gemini 1.5 Pro" },
-  { id: "gemini-1.5-flash", label: "Gemini 1.5 Flash" },
+  { id: "gemini-3.5-flash", label: "Gemini 3.5 Flash (Default)" },
+  { id: "gemini-3.1-flash-lite", label: "Gemini 3.1 Flash Lite" },
+  { id: "gemini-2.5-flash-lite", label: "Gemini 2.5 Flash Lite" },
+  { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash" },
+  { id: "gemini-3-flash", label: "Gemini 3 Flash" },
 ];
 
 export function GeminiNode({ id, data }: NodeProps) {

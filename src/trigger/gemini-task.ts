@@ -34,9 +34,15 @@ export interface GeminiTaskOutput {
 export async function executeGemini(
   input: GeminiTaskInput
 ): Promise<GeminiTaskOutput> {
-  // Validate and sanitize model (prefer gemini-2.0-flash for free tier)
-  const validModels = ["gemini-2.0-flash", "gemini-2.5-pro", "gemini-1.5-pro", "gemini-1.5-flash"];
-  const sanitizedModel = validModels.includes(input.model) ? input.model : "gemini-2.0-flash";
+  // Validate and sanitize model
+  const validModels = [
+    "gemini-3.5-flash",
+    "gemini-3.1-flash-lite",
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+    "gemini-3-flash"
+  ];
+  const sanitizedModel = validModels.includes(input.model) ? input.model : "gemini-3.5-flash";
   
   console.log("[executeGemini] Starting with input:", {
     originalModel: input.model,

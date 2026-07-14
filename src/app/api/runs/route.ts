@@ -195,10 +195,16 @@ export async function POST(request: Request) {
               outputImage: res.croppedImageBase64,
             };
           } else if (nodeType === "gemini") {
-            // Validate and sanitize model (prefer gemini-2.0-flash for free tier)
-            const validModels = ["gemini-2.0-flash", "gemini-2.5-pro", "gemini-3.1-pro", "gemini-1.5-pro", "gemini-1.5-flash"];
+            // Validate and sanitize model
+            const validModels = [
+              "gemini-3.5-flash",
+              "gemini-3.1-flash-lite",
+              "gemini-2.5-flash",
+              "gemini-2.5-flash-lite",
+              "gemini-3-flash"
+            ];
             const rawModel = (inputs.model as string);
-            const model = validModels.includes(rawModel) ? rawModel : "gemini-2.0-flash";
+            const model = validModels.includes(rawModel) ? rawModel : "gemini-3.5-flash";
             
             const prompt = (inputs.prompt as string) || "";
             const systemPrompt = (inputs.systemPrompt as string) || "";

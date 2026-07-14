@@ -91,162 +91,145 @@ export async function executeDAG(
     }
   }
 
+  // Map of node ID to execution Promise
+  const nodePromises = new Map<string, Promise<void>>();
+
   // Track completed and failed nodes and their outputs
   const completedNodes = new Set<string>();
   const failedNodes = new Set<string>();
   const nodeOutputs = new Map<string, Record<string, unknown>>();
 
-  // Execute nodes in topological order, parallelizing independent nodes
-  // Group nodes into "levels" — nodes in the same level can run in parallel
-  const levels: string[][] = [];
-  const assigned = new Set<string>();
+  // Helper function to execute a single node
+  const executeNode = async (nodeId: string) => {
+    const node = executionNodes.find((n) => n.id === nodeId);
+    if (!node) return;
 
-  for (const nodeId of sortedIds) {
-    // Find the earliest level where all dependencies are satisfied
-    let level = 0;
-    const deps = dependencies.get(nodeId) || new Set();
-    for (const dep of deps) {
-      // Find which level the dependency is in
-      for (let l = 0; l < levels.length; l++) {
-        if (levels[l].includes(dep)) {
-          level = Math.max(level, l + 1);
+    // Gather predecessor node IDs
+    const preds = dependencies.get(nodeId) || new Set<string>();
+
+    // Wait for all predecessors' promises to resolve
+    if (preds.size > 0) {
+      await Promise.all([...preds].map(predId => nodePromises.get(predId)));
+    }
+
+    // Check if any dependency has failed or skipped — if so, skip this node
+    const failedDep = [...preds].find((dep) => failedNodes.has(dep));
+    if (failedDep) {
+      const failedDepNode = executionNodes.find((n) => n.id === failedDep);
+      const failedDepLabel = failedDepNode?.data?.label || failedDep;
+      const skipMsg = `Skipped: upstream node "${failedDepLabel}" failed`;
+
+      failedNodes.add(nodeId);
+      const result: NodeRunResult = {
+        nodeId,
+        nodeType: node.type || "",
+        status: "skipped",
+        error: skipMsg,
+        durationMs: 0,
+      };
+      results.push(result);
+      context.onNodeError?.(nodeId, skipMsg);
+      return;
+    }
+
+    // Gather inputs from connected edges (with multiple inputs support for image handles)
+    const inputs: Record<string, unknown> = {};
+    const incomingEdges = edges.filter((e) => e.target === nodeId);
+    for (const edge of incomingEdges) {
+      let val: unknown = null;
+      const sourceOutput = nodeOutputs.get(edge.source);
+      if (sourceOutput && edge.sourceHandle) {
+        val = sourceOutput[edge.sourceHandle];
+      } else if (edge.sourceHandle && edge.targetHandle) {
+        // Fallback: get from source node's data in the workflow
+        const sourceNode = nodes.find((n) => n.id === edge.source);
+        if (sourceNode) {
+          if (sourceNode.type === "requestInputs") {
+            const fields = (sourceNode.data.fields || []) as { id: string; value: unknown }[];
+            const field = fields.find((f) => f.id === edge.sourceHandle || `${f.id}_image` === edge.sourceHandle);
+            if (field) {
+              val = field.value;
+            }
+          } else if (sourceNode.type === "cropImage") {
+            if (edge.sourceHandle === "outputImage") {
+              val = sourceNode.data.output;
+            }
+          } else if (sourceNode.type === "gemini") {
+            if (edge.sourceHandle === "response") {
+              val = sourceNode.data.response;
+            }
+          }
+        }
+      }
+
+      if (val !== undefined && val !== null && edge.targetHandle) {
+        if (edge.targetHandle === "image") {
+          if (!inputs.image) {
+            inputs.image = [];
+          }
+          if (Array.isArray(inputs.image)) {
+            inputs.image.push(val);
+          } else {
+            inputs.image = [inputs.image, val];
+          }
+        } else {
+          inputs[edge.targetHandle] = val;
         }
       }
     }
 
-    // Add to that level
-    while (levels.length <= level) levels.push([]);
-    levels[level].push(nodeId);
-    assigned.add(nodeId);
-  }
+    // Merge with node's own data as fallback for unconnected inputs
+    const mergedInputs = { ...node.data, ...inputs };
 
-  // Execute level by level
-  for (const level of levels) {
-    // All nodes in this level can execute in parallel
-    const levelResults = await Promise.allSettled(
-      level.map(async (nodeId) => {
-        const node = executionNodes.find((n) => n.id === nodeId);
-        if (!node) return;
+    context.onNodeStart?.(nodeId);
+    const startTime = Date.now();
 
-        // Check if any dependency has failed — skip this node if so
-        const deps = dependencies.get(nodeId) || new Set();
-        const failedDep = [...deps].find((dep) => failedNodes.has(dep));
-        if (failedDep) {
-          const failedDepNode = executionNodes.find((n) => n.id === failedDep);
-          const failedDepLabel = failedDepNode?.data?.label || failedDep;
-          const skipMsg = `Skipped: upstream node "${failedDepLabel}" failed`;
+    try {
+      const output = await executor(nodeId, node.type || "", mergedInputs);
+      const durationMs = Date.now() - startTime;
 
-          failedNodes.add(nodeId);
-          const result: NodeRunResult = {
-            nodeId,
-            nodeType: node.type || "",
-            status: "skipped",
-            error: skipMsg,
-            durationMs: 0,
-          };
-          results.push(result);
-          context.onNodeError?.(nodeId, skipMsg);
-          return;
-        }
+      nodeOutputs.set(nodeId, output);
+      completedNodes.add(nodeId);
 
-        // Gather inputs from connected edges (with multiple inputs support for image handles)
-        const inputs: Record<string, unknown> = {};
-        const incomingEdges = edges.filter((e) => e.target === nodeId);
-        for (const edge of incomingEdges) {
-          let val: unknown = null;
-          const sourceOutput = nodeOutputs.get(edge.source);
-          if (sourceOutput && edge.sourceHandle) {
-            val = sourceOutput[edge.sourceHandle];
-          } else if (edge.sourceHandle && edge.targetHandle) {
-            // Fallback: get from source node's data in the workflow
-            const sourceNode = nodes.find((n) => n.id === edge.source);
-            if (sourceNode) {
-              if (sourceNode.type === "requestInputs") {
-                const fields = (sourceNode.data.fields || []) as { id: string; value: unknown }[];
-                const field = fields.find((f) => f.id === edge.sourceHandle || `${f.id}_image` === edge.sourceHandle);
-                if (field) {
-                  val = field.value;
-                }
-              } else if (sourceNode.type === "cropImage") {
-                if (edge.sourceHandle === "outputImage") {
-                  val = sourceNode.data.output;
-                }
-              } else if (sourceNode.type === "gemini") {
-                if (edge.sourceHandle === "response") {
-                  val = sourceNode.data.response;
-                }
-              }
-            }
-          }
+      const result: NodeRunResult = {
+        nodeId,
+        nodeType: node.type || "",
+        status: "success",
+        input: mergedInputs as Record<string, unknown>,
+        output,
+        durationMs,
+      };
 
-          if (val !== undefined && val !== null && edge.targetHandle) {
-            if (edge.targetHandle === "image") {
-              if (!inputs.image) {
-                inputs.image = [];
-              }
-              if (Array.isArray(inputs.image)) {
-                inputs.image.push(val);
-              } else {
-                inputs.image = [inputs.image, val];
-              }
-            } else {
-              inputs[edge.targetHandle] = val;
-            }
-          }
-        }
+      results.push(result);
+      context.onNodeComplete?.(nodeId, result);
+    } catch (error) {
+      const durationMs = Date.now() - startTime;
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
 
-        // Merge with node's own data as fallback for unconnected inputs
-        const mergedInputs = { ...node.data, ...inputs };
+      failedNodes.add(nodeId);
 
-        context.onNodeStart?.(nodeId);
-        const startTime = Date.now();
+      const result: NodeRunResult = {
+        nodeId,
+        nodeType: node.type || "",
+        status: "failed",
+        input: mergedInputs as Record<string, unknown>,
+        error: errorMsg,
+        durationMs,
+      };
 
-        try {
-          const output = await executor(nodeId, node.type || "", mergedInputs);
-          const durationMs = Date.now() - startTime;
-
-          nodeOutputs.set(nodeId, output);
-          completedNodes.add(nodeId);
-
-          const result: NodeRunResult = {
-            nodeId,
-            nodeType: node.type || "",
-            status: "success",
-            input: mergedInputs as Record<string, unknown>,
-            output,
-            durationMs,
-          };
-
-          results.push(result);
-          context.onNodeComplete?.(nodeId, result);
-        } catch (error) {
-          const durationMs = Date.now() - startTime;
-          const errorMsg = error instanceof Error ? error.message : "Unknown error";
-
-          failedNodes.add(nodeId);
-
-          const result: NodeRunResult = {
-            nodeId,
-            nodeType: node.type || "",
-            status: "failed",
-            input: mergedInputs as Record<string, unknown>,
-            error: errorMsg,
-            durationMs,
-          };
-
-          results.push(result);
-          context.onNodeError?.(nodeId, errorMsg);
-        }
-      })
-    );
-
-    // Check for rejected promises (shouldn't happen with try/catch, but safety)
-    for (const result of levelResults) {
-      if (result.status === "rejected") {
-        console.error("Unexpected rejection:", result.reason);
-      }
+      results.push(result);
+      context.onNodeError?.(nodeId, errorMsg);
     }
+  };
+
+  // Kick off execution for all nodes.
+  // Each node will wait internally for its predecessors to resolve.
+  for (const node of executionNodes) {
+    nodePromises.set(node.id, executeNode(node.id));
   }
+
+  // Wait for all node promises to resolve completely
+  await Promise.all(nodePromises.values());
 
   return results;
 }

@@ -11,6 +11,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { LinkedInLogger } from "@/components/linkedin-logger";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -36,6 +38,7 @@ export default function RootLayout({
     >
       <html lang="en" className="h-full">
         <body className="min-h-full flex flex-col bg-[#f8f9fb] text-slate-900 antialiased font-sans">
+          <LinkedInLogger />
           {children}
         </body>
       </html>

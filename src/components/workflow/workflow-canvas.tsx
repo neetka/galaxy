@@ -335,8 +335,8 @@ function createNodeByType(
         type: "gemini",
         position,
         data: {
-          label: "Gemini 2.0 Flash",
-          model: "gemini-2.0-flash",
+          label: "Gemini 3.1 Pro",
+          model: "gemini-3.1-pro",
           prompt: "",
           systemPrompt: "",
           images: [],

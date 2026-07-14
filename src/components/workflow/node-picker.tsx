@@ -15,10 +15,11 @@ import { useWorkflowStore } from "@/stores/workflow-store";
 import { NODE_CATALOG, type NodeCatalogEntry } from "@/lib/node-types";
 
 const CATEGORY_LABELS: Record<string, string> = {
-  input: "Input",
-  transform: "Transform",
-  ai: "AI Models",
-  output: "Output",
+  recent: "Recent",
+  image: "Image",
+  video: "Video",
+  audio: "Audio",
+  others: "Others",
 };
 
 const ICONS: Record<string, React.ReactNode> = {
@@ -34,7 +35,7 @@ export function NodePicker() {
   const setNodePickerOpen = useUIStore((s) => s.setNodePickerOpen);
   const addNode = useWorkflowStore((s) => s.addNode);
   const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string>("recent");
   const pickerRef = useRef<HTMLDivElement>(null);
 
   // Close on outside click
@@ -55,14 +56,30 @@ export function NodePicker() {
       !search ||
       node.label.toLowerCase().includes(search.toLowerCase()) ||
       node.description.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = !activeCategory || node.category === activeCategory;
-    // Filter out pre-placed nodes (requestInputs and response) from the picker
-    return matchesSearch && matchesCategory && node.type !== "requestInputs" && node.type !== "response";
+    
+    if (node.type === "requestInputs" || node.type === "response") {
+      return false;
+    }
+
+    if (activeCategory === "recent") {
+      return matchesSearch && (node.type === "cropImage" || node.type === "gemini");
+    }
+    if (activeCategory === "image") {
+      return matchesSearch && (node.type === "cropImage" || node.type === "gemini");
+    }
+    if (activeCategory === "video") {
+      return matchesSearch && node.type === "gemini";
+    }
+    if (activeCategory === "audio") {
+      return matchesSearch && node.type === "gemini";
+    }
+    if (activeCategory === "others") {
+      return matchesSearch && node.type === "gemini";
+    }
+    return matchesSearch;
   });
 
-  const categories = [...new Set(NODE_CATALOG
-    .filter((n) => n.type !== "requestInputs" && n.type !== "response")
-    .map((n) => n.category))];
+  const categories = ["recent", "image", "video", "audio", "others"];
 
   const onDragStart = (event: React.DragEvent, nodeType: string) => {
     event.dataTransfer.setData("application/reactflow", nodeType);
@@ -117,22 +134,12 @@ export function NodePicker() {
           </div>
 
           {/* Category pills */}
-          <div className="flex gap-2 px-4 pb-3">
-            <button
-              onClick={() => setActiveCategory(null)}
-              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                !activeCategory
-                  ? "bg-purple-50 text-purple-600 border border-purple-200"
-                  : "text-slate-500 hover:text-slate-700 border border-gray-200 hover:border-gray-300"
-              }`}
-            >
-              All
-            </button>
+          <div className="flex gap-2 px-4 pb-3 overflow-x-auto">
             {categories.map((cat) => (
               <button
                 key={cat}
-                onClick={() => setActiveCategory(cat === activeCategory ? null : cat)}
-                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                onClick={() => setActiveCategory(cat)}
+                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors whitespace-nowrap ${
                   activeCategory === cat
                     ? "bg-purple-50 text-purple-600 border border-purple-200"
                     : "text-slate-500 hover:text-slate-700 border border-gray-200 hover:border-gray-300"
@@ -170,8 +177,8 @@ export function NodePicker() {
                           height: 100,
                           connectedInputs: new Set<string>(),
                         } : {
-                          label: "Gemini 2.5 Pro",
-                          model: "gemini-2.5-pro",
+                          label: "Gemini 3.1 Pro",
+                          model: "gemini-3.1-pro",
                           prompt: "",
                           systemPrompt: "",
                           images: [],
