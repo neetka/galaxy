@@ -100,7 +100,11 @@ function WorkflowCanvasInner({ workflowId }: { workflowId: string }) {
               } else if (nodeRun.nodeType === "gemini") {
                 updateNodeData(nodeRun.nodeId, { response: output.response });
               } else if (nodeRun.nodeType === "response") {
-                updateNodeData(nodeRun.nodeId, { result: output.result });
+                const raw = output.result;
+                const result = Array.isArray(raw)
+                  ? raw.filter(Boolean).join("\n\n")
+                  : (raw as string) || "";
+                updateNodeData(nodeRun.nodeId, { result });
               }
             }
           } else if (nodeRun.status === "failed") {

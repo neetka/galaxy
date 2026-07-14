@@ -307,11 +307,15 @@ export async function POST(request: Request) {
               },
             };
           } else if (node.type === "response") {
+            const rawResult = nodeRun.output?.result;
+            const result = Array.isArray(rawResult)
+              ? (rawResult as string[]).filter(Boolean).join("\n\n")
+              : (rawResult as string) || "";
             return {
               ...node,
               data: {
                 ...node.data,
-                result: nodeRun.output?.result || "",
+                result,
                 hasError: nodeRun.status === "failed",
               },
             };
