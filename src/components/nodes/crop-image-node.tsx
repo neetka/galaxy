@@ -92,6 +92,7 @@ export function CropImageNode({ id, data }: NodeProps) {
                       : "border-gray-200 bg-gray-50 text-slate-700 focus:border-orange-400 focus:bg-white"
                   }`}
                   value={nodeData[key]}
+                  onFocus={() => useWorkflowStore.getState().takeSnapshot()}
                   onChange={(e) =>
                     !isConnected &&
                     updateNodeData(id, { [key]: Number(e.target.value) })

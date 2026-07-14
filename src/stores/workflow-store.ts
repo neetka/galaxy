@@ -18,6 +18,7 @@ import type {
   WorkflowRunResult,
 } from "@/types/workflow";
 import { getHandleDataType, areHandlesCompatible } from "@/lib/node-types";
+import { validateConnection as validateGraphConnection } from "@/lib/engine/graph-validator";
 
 // ── Store Interface ──────────────────────────────────────────────────
 
@@ -41,6 +42,10 @@ interface WorkflowState {
 
   // History
   history: WorkflowRunResult[];
+
+  // Undo/Redo stacks
+  past: { nodes: Node<WorkflowNodeData>[]; edges: Edge[] }[];
+  future: { nodes: Node<WorkflowNodeData>[]; edges: Edge[] }[];
 
   // Actions — React Flow handlers
   onNodesChange: OnNodesChange;
@@ -71,40 +76,37 @@ interface WorkflowState {
 
   // Actions — Connected inputs tracking
   getConnectedInputs: (nodeId: string) => string[];
+
+  // Actions — Undo/Redo
+  takeSnapshot: () => void;
+  undo: () => void;
+  redo: () => void;
 }
 
-// ── Cycle Detection ──────────────────────────────────────────────────
-
-function wouldCreateCycle(
-  nodes: Node[],
-  edges: Edge[],
-  newEdge: { source: string; target: string }
-): boolean {
-  // Build adjacency list including the proposed new edge
-  const adj = new Map<string, string[]>();
-  for (const node of nodes) {
-    adj.set(node.id, []);
-  }
-  for (const edge of edges) {
-    adj.get(edge.source)?.push(edge.target);
-  }
-  adj.get(newEdge.source)?.push(newEdge.target);
-
-  // DFS from target to check if we can reach source (cycle)
-  const visited = new Set<string>();
-  const stack = [newEdge.target];
-
-  while (stack.length > 0) {
-    const current = stack.pop()!;
-    if (current === newEdge.source) return true;
-    if (visited.has(current)) continue;
-    visited.add(current);
-    const neighbors = adj.get(current) || [];
-    stack.push(...neighbors);
-  }
-
-  return false;
-}
+// Helper to clone nodes and edges cleanly without circular refs
+const cloneNodesAndEdges = (nodesList: Node<WorkflowNodeData>[], edgesList: Edge[]) => {
+  return {
+    nodes: nodesList.map((node) => ({
+      ...node,
+      position: { ...node.position },
+      data: {
+        ...node.data,
+        connectedInputs: node.data.connectedInputs instanceof Set
+          ? new Set(node.data.connectedInputs)
+          : Array.isArray(node.data.connectedInputs)
+            ? new Set(node.data.connectedInputs)
+            : new Set(),
+        fields: "fields" in node.data && Array.isArray(node.data.fields)
+          ? node.data.fields.map((f) => ({ ...f }))
+          : undefined,
+      } as WorkflowNodeData,
+    })),
+    edges: edgesList.map((edge) => ({
+      ...edge,
+      style: edge.style ? { ...edge.style } : undefined,
+    })),
+  };
+};
 
 // ── Store ────────────────────────────────────────────────────────────
 
@@ -119,14 +121,24 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   workflowError: null,
   nodeErrors: new Map(),
   history: [],
+  past: [],
+  future: [],
 
   onNodesChange: (changes) => {
+    const hasRemoval = changes.some((c) => c.type === "remove");
+    if (hasRemoval) {
+      get().takeSnapshot();
+    }
     set((state) => ({
       nodes: applyNodeChanges(changes, state.nodes) as Node<WorkflowNodeData>[],
     }));
   },
 
   onEdgesChange: (changes) => {
+    const hasRemoval = changes.some((c) => c.type === "remove");
+    if (hasRemoval) {
+      get().takeSnapshot();
+    }
     set((state) => ({
       edges: applyEdgeChanges(changes, state.edges),
     }));
@@ -135,19 +147,10 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   onConnect: (connection) => {
     const state = get();
 
-    // Validate connection type compatibility
+    // Validate connection (type compatibility, target uniqueness, cycle prevention)
     if (!state.validateConnection(connection)) return;
 
-    // Check for cycles
-    if (
-      wouldCreateCycle(state.nodes, state.edges, {
-        source: connection.source,
-        target: connection.target,
-      })
-    ) {
-      console.warn("Connection rejected: would create a cycle");
-      return;
-    }
+    state.takeSnapshot();
 
     set((state) => ({
       edges: addEdge(
@@ -162,20 +165,31 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   },
 
   setWorkflow: (id, name, nodes, edges) =>
-    set({ workflowId: id, workflowName: name, nodes: nodes as Node<WorkflowNodeData>[], edges }),
+    set({
+      workflowId: id,
+      workflowName: name,
+      nodes: nodes as Node<WorkflowNodeData>[],
+      edges,
+      past: [],
+      future: [],
+    }),
 
   setWorkflowName: (name) => set({ workflowName: name }),
 
-  addNode: (node) =>
-    set((state) => ({ nodes: [...state.nodes, node] as Node<WorkflowNodeData>[] })),
+  addNode: (node) => {
+    get().takeSnapshot();
+    set((state) => ({ nodes: [...state.nodes, node] as Node<WorkflowNodeData>[] }));
+  },
 
-  removeNode: (nodeId) =>
+  removeNode: (nodeId) => {
+    get().takeSnapshot();
     set((state) => ({
       nodes: state.nodes.filter((n) => n.id !== nodeId),
       edges: state.edges.filter(
         (e) => e.source !== nodeId && e.target !== nodeId
       ),
-    })),
+    }));
+  },
 
   updateNodeData: (nodeId, data) =>
     set((state) => ({
@@ -265,25 +279,13 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
 
   validateConnection: (connection) => {
     const state = get();
-    const sourceNode = state.nodes.find((n) => n.id === connection.source);
-    const targetNode = state.nodes.find((n) => n.id === connection.target);
-
-    if (!sourceNode || !targetNode) return false;
-
-    const sourceType = getHandleDataType(
-      sourceNode.type || "",
-      connection.sourceHandle || "",
-      "source"
-    );
-    const targetType = getHandleDataType(
-      targetNode.type || "",
-      connection.targetHandle || "",
-      "target"
-    );
-
-    if (!sourceType || !targetType) return true; // Allow if types unknown
-
-    return areHandlesCompatible(sourceType, targetType);
+    const res = validateGraphConnection(state.nodes, state.edges, {
+      source: connection.source,
+      target: connection.target,
+      sourceHandle: connection.sourceHandle,
+      targetHandle: connection.targetHandle,
+    });
+    return res.valid;
   },
 
   getConnectedInputs: (nodeId) => {
@@ -291,5 +293,69 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     return state.edges
       .filter((e) => e.target === nodeId)
       .map((e) => e.targetHandle || "");
+  },
+
+  // ── History Actions ────────────────────────────────────────────────
+
+  takeSnapshot: () => {
+    const { nodes, edges, past } = get();
+
+    // Serialize node structure for comparison to avoid redundant history points
+    const serializeState = (nodesList: Node<WorkflowNodeData>[], edgesList: Edge[]) => {
+      return JSON.stringify({
+        nodes: nodesList.map((n) => ({
+          id: n.id,
+          type: n.type,
+          position: n.position,
+          data: {
+            ...n.data,
+            connectedInputs: undefined,
+          },
+        })),
+        edges: edgesList.map((e) => ({ id: e.id, source: e.source, target: e.target })),
+      });
+    };
+
+    const last = past[past.length - 1];
+    if (last) {
+      const currentSer = serializeState(nodes, edges);
+      const lastSer = serializeState(last.nodes, last.edges);
+      if (currentSer === lastSer) return;
+    }
+
+    set({
+      past: [...past.slice(-49), cloneNodesAndEdges(nodes, edges)],
+      future: [],
+    });
+  },
+
+  undo: () => {
+    const { past, future, nodes, edges } = get();
+    if (past.length === 0) return;
+
+    const previous = past[past.length - 1];
+    const newPast = past.slice(0, -1);
+
+    set({
+      past: newPast,
+      future: [cloneNodesAndEdges(nodes, edges), ...future],
+      nodes: previous.nodes,
+      edges: previous.edges,
+    });
+  },
+
+  redo: () => {
+    const { past, future, nodes, edges } = get();
+    if (future.length === 0) return;
+
+    const next = future[0];
+    const newFuture = future.slice(1);
+
+    set({
+      past: [...past, cloneNodesAndEdges(nodes, edges)],
+      future: newFuture,
+      nodes: next.nodes,
+      edges: next.edges,
+    });
   },
 }));

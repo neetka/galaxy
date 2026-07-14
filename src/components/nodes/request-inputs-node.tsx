@@ -47,6 +47,37 @@ export function RequestInputsNode({ id, data }: NodeProps) {
     [id, nodeData.fields, updateNodeData]
   );
 
+  const handleImageUpload = useCallback(
+    (fieldId: string, file: File) => {
+      if (!file.type.startsWith("image/")) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64 = e.target?.result as string;
+        if (base64) {
+          useWorkflowStore.getState().takeSnapshot();
+          updateField(fieldId, { value: base64 });
+        }
+      };
+      reader.readAsDataURL(file);
+    },
+    [updateField]
+  );
+
+  const onDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+  }, []);
+
+  const onDrop = useCallback(
+    (e: React.DragEvent, fieldId: string) => {
+      e.preventDefault();
+      const file = e.dataTransfer.files?.[0];
+      if (file) {
+        handleImageUpload(fieldId, file);
+      }
+    },
+    [handleImageUpload]
+  );
+
   return (
     <div>
       <BaseNode
@@ -72,12 +103,13 @@ export function RequestInputsNode({ id, data }: NodeProps) {
                 <input
                   className="flex-1 bg-transparent text-xs text-slate-700 outline-none placeholder-slate-400"
                   value={field.name}
+                  onFocus={() => useWorkflowStore.getState().takeSnapshot()}
                   onChange={(e) => updateField(field.id, { name: e.target.value })}
                   placeholder="Field name"
                 />
                 <button
                   onClick={() => removeField(field.id)}
-                  className="rounded p-0.5 text-slate-400 opacity-0 transition-opacity hover:text-red-500 group-hover:opacity-100"
+                  className="rounded p-0.5 text-slate-400 opacity-0 transition-opacity hover:text-red-500 group-hover:opacity-100 animate-in fade-in duration-200"
                 >
                   <Trash2 className="h-3 w-3" />
                 </button>
@@ -90,21 +122,51 @@ export function RequestInputsNode({ id, data }: NodeProps) {
                   rows={2}
                   placeholder="Enter text..."
                   value={field.value}
+                  onFocus={() => useWorkflowStore.getState().takeSnapshot()}
                   onChange={(e) => updateField(field.id, { value: e.target.value })}
                 />
               ) : (
-                <div className="mt-1 flex h-16 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50">
+                <div
+                  onClick={() => {
+                    const input = document.createElement("input");
+                    input.type = "file";
+                    input.accept = "image/*";
+                    input.onchange = (e) => {
+                      const file = (e.target as HTMLInputElement).files?.[0];
+                      if (file) {
+                        handleImageUpload(field.id, file);
+                      }
+                    };
+                    input.click();
+                  }}
+                  onDragOver={onDragOver}
+                  onDrop={(e) => onDrop(e, field.id)}
+                  className="mt-1 flex h-16 cursor-pointer items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100/80 hover:border-green-400 transition-all overflow-hidden group/image relative"
+                >
                   {field.value ? (
-                    <>
+                    <div className="relative h-full w-full">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={field.value}
                         alt="uploaded"
-                        className="h-full w-full rounded-lg object-cover"
+                        className="h-full w-full object-cover"
                       />
-                    </>
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/image:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        <span className="text-[10px] text-white font-medium">Click to replace</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            useWorkflowStore.getState().takeSnapshot();
+                            updateField(field.id, { value: "" });
+                          }}
+                          className="rounded p-1 bg-red-600/80 hover:bg-red-600 text-white transition-colors"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
                   ) : (
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-slate-400 select-none">
                       Drop image or click to upload
                     </span>
                   )}
@@ -144,3 +206,4 @@ export function RequestInputsNode({ id, data }: NodeProps) {
     </div>
   );
 }
+

@@ -10,6 +10,7 @@ import type { GeminiNodeData } from "@/types/workflow";
 const GEMINI_MODELS = [
   { id: "gemini-2.0-flash", label: "Gemini 2.0 Flash (Free Tier)" },
   { id: "gemini-2.5-pro", label: "Gemini 2.5 Pro" },
+  { id: "gemini-3.1-pro", label: "Gemini 3.1 Pro (Experimental)" },
   { id: "gemini-1.5-pro", label: "Gemini 1.5 Pro" },
   { id: "gemini-1.5-flash", label: "Gemini 1.5 Flash" },
 ];
@@ -59,6 +60,7 @@ export function GeminiNode({ id, data }: NodeProps) {
           <select
             className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-[10px] text-slate-500 outline-none"
             value={nodeData.model}
+            onFocus={() => useWorkflowStore.getState().takeSnapshot()}
             onChange={(e) => updateNodeData(id, { model: e.target.value })}
           >
             {GEMINI_MODELS.map((m) => (
@@ -84,6 +86,7 @@ export function GeminiNode({ id, data }: NodeProps) {
             rows={3}
             placeholder={isPromptConnected ? "Connected" : "Enter your prompt..."}
             value={nodeData.prompt}
+            onFocus={() => useWorkflowStore.getState().takeSnapshot()}
             onChange={(e) =>
               !isPromptConnected && updateNodeData(id, { prompt: e.target.value })
             }
@@ -106,6 +109,7 @@ export function GeminiNode({ id, data }: NodeProps) {
             rows={2}
             placeholder={isSystemPromptConnected ? "Connected" : "System instructions..."}
             value={nodeData.systemPrompt}
+            onFocus={() => useWorkflowStore.getState().takeSnapshot()}
             onChange={(e) =>
               !isSystemPromptConnected &&
               updateNodeData(id, { systemPrompt: e.target.value })
@@ -158,6 +162,7 @@ export function GeminiNode({ id, data }: NodeProps) {
                   max={2}
                   className="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-slate-700 outline-none focus:border-purple-400 focus:bg-white"
                   value={nodeData.temperature}
+                  onFocus={() => useWorkflowStore.getState().takeSnapshot()}
                   onChange={(e) =>
                     updateNodeData(id, { temperature: Number(e.target.value) })
                   }
@@ -173,6 +178,7 @@ export function GeminiNode({ id, data }: NodeProps) {
                   min={1}
                   className="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-slate-700 outline-none focus:border-purple-400 focus:bg-white"
                   value={nodeData.maxTokens}
+                  onFocus={() => useWorkflowStore.getState().takeSnapshot()}
                   onChange={(e) =>
                     updateNodeData(id, { maxTokens: Number(e.target.value) })
                   }
@@ -189,6 +195,7 @@ export function GeminiNode({ id, data }: NodeProps) {
                   max={1}
                   className="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-slate-700 outline-none focus:border-purple-400 focus:bg-white"
                   value={nodeData.topP}
+                  onFocus={() => useWorkflowStore.getState().takeSnapshot()}
                   onChange={(e) =>
                     updateNodeData(id, { topP: Number(e.target.value) })
                   }

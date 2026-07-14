@@ -135,11 +135,38 @@ function WorkflowCanvasInner({ workflowId }: { workflowId: string }) {
     return () => clearInterval(intervalId);
   }, [isRunning, workflowId, setIsRunning, setNodeRunning, setNodeError, setNodeErrorMessage, updateNodeData, resetAllRunningNodes]);
 
-  // Handle keyboard shortcuts
+  // Handle keyboard shortcuts (Delete, Backspace, Undo, Redo)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const activeEl = document.activeElement;
+      const isEditingText =
+        activeEl &&
+        (activeEl.tagName === "INPUT" ||
+          activeEl.tagName === "TEXTAREA" ||
+          activeEl.getAttribute("contenteditable") === "true");
+
+      // Undo: Ctrl+Z / Cmd+Z
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+        if (isEditingText) return;
+        e.preventDefault();
+        useWorkflowStore.getState().undo();
+        return;
+      }
+
+      // Redo: Ctrl+Y / Cmd+Y / Ctrl+Shift+Z / Cmd+Shift+Z
+      if (
+        ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") ||
+        ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "z")
+      ) {
+        if (isEditingText) return;
+        e.preventDefault();
+        useWorkflowStore.getState().redo();
+        return;
+      }
+
       // Delete selected nodes
       if (e.key === "Delete" || e.key === "Backspace") {
+        if (isEditingText) return;
         const selectedNodes = useWorkflowStore.getState().selectedNodes;
         selectedNodes.forEach((id) => {
           const node = useWorkflowStore.getState().nodes.find((n) => n.id === id);
@@ -188,6 +215,10 @@ function WorkflowCanvasInner({ workflowId }: { workflowId: string }) {
     [setSelectedNodes]
   );
 
+  const onNodeDragStart = useCallback(() => {
+    useWorkflowStore.getState().takeSnapshot();
+  }, []);
+
   return (
     <div className="relative h-full w-full">
       {/* Toolbar */}
@@ -226,6 +257,7 @@ function WorkflowCanvasInner({ workflowId }: { workflowId: string }) {
             onDragOver={onDragOver}
             onDrop={onDrop}
             onSelectionChange={onSelectionChange}
+            onNodeDragStart={onNodeDragStart}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             defaultEdgeOptions={{

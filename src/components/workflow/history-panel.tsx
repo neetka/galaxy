@@ -29,11 +29,11 @@ export function HistoryPanel({ workflowId }: { workflowId: string }) {
 
   useEffect(() => {
     async function fetchRuns() {
-      setFetchError(false);
       try {
         const res = await fetch(`/api/runs/${workflowId}`);
         if (res.ok) {
           setRuns(await res.json());
+          setFetchError(false);
         } else {
           setFetchError(true);
         }
@@ -45,6 +45,9 @@ export function HistoryPanel({ workflowId }: { workflowId: string }) {
       }
     }
     fetchRuns();
+
+    const intervalId = setInterval(fetchRuns, 3000);
+    return () => clearInterval(intervalId);
   }, [workflowId]);
 
   const statusConfig = {

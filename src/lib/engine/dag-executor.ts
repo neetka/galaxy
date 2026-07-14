@@ -33,6 +33,24 @@ interface NodeExecutor {
 
 // ── DAG Executor ─────────────────────────────────────────────────────
 
+function getAncestors(nodes: Node[], edges: Edge[], targetIds: string[]): Set<string> {
+  const ancestors = new Set<string>(targetIds);
+  const queue = [...targetIds];
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    const parents = edges
+      .filter((e) => e.target === current)
+      .map((e) => e.source);
+    for (const parent of parents) {
+      if (!ancestors.has(parent)) {
+        ancestors.add(parent);
+        queue.push(parent);
+      }
+    }
+  }
+  return ancestors;
+}
+
 export async function executeDAG(
   context: ExecutionContext,
   executor: NodeExecutor
@@ -40,19 +58,16 @@ export async function executeDAG(
   const { nodes, edges, scope, targetNodeIds } = context;
   const results: NodeRunResult[] = [];
 
-  // Determine which nodes to execute based on scope
+  // Determine which nodes to execute based on scope (with dependency execution)
   let executionNodes: Node[];
   switch (scope) {
     case "single":
-      executionNodes = nodes.filter(
-        (n) => targetNodeIds?.includes(n.id)
-      );
+    case "multi": {
+      const targetIds = targetNodeIds || [];
+      const ancestorIds = getAncestors(nodes, edges, targetIds);
+      executionNodes = nodes.filter((n) => ancestorIds.has(n.id));
       break;
-    case "multi":
-      executionNodes = nodes.filter(
-        (n) => targetNodeIds?.includes(n.id)
-      );
-      break;
+    }
     case "full":
     default:
       executionNodes = nodes;
@@ -134,13 +149,14 @@ export async function executeDAG(
           return;
         }
 
-        // Gather inputs from connected edges
+        // Gather inputs from connected edges (with multiple inputs support for image handles)
         const inputs: Record<string, unknown> = {};
         const incomingEdges = edges.filter((e) => e.target === nodeId);
         for (const edge of incomingEdges) {
+          let val: unknown = null;
           const sourceOutput = nodeOutputs.get(edge.source);
-          if (sourceOutput && edge.sourceHandle && edge.targetHandle) {
-            inputs[edge.targetHandle] = sourceOutput[edge.sourceHandle];
+          if (sourceOutput && edge.sourceHandle) {
+            val = sourceOutput[edge.sourceHandle];
           } else if (edge.sourceHandle && edge.targetHandle) {
             // Fallback: get from source node's data in the workflow
             const sourceNode = nodes.find((n) => n.id === edge.source);
@@ -149,17 +165,32 @@ export async function executeDAG(
                 const fields = (sourceNode.data.fields || []) as { id: string; value: unknown }[];
                 const field = fields.find((f) => f.id === edge.sourceHandle || `${f.id}_image` === edge.sourceHandle);
                 if (field) {
-                  inputs[edge.targetHandle] = field.value;
+                  val = field.value;
                 }
               } else if (sourceNode.type === "cropImage") {
                 if (edge.sourceHandle === "outputImage") {
-                  inputs[edge.targetHandle] = sourceNode.data.output;
+                  val = sourceNode.data.output;
                 }
               } else if (sourceNode.type === "gemini") {
                 if (edge.sourceHandle === "response") {
-                  inputs[edge.targetHandle] = sourceNode.data.response;
+                  val = sourceNode.data.response;
                 }
               }
+            }
+          }
+
+          if (val !== undefined && val !== null && edge.targetHandle) {
+            if (edge.targetHandle === "image") {
+              if (!inputs.image) {
+                inputs.image = [];
+              }
+              if (Array.isArray(inputs.image)) {
+                inputs.image.push(val);
+              } else {
+                inputs.image = [inputs.image, val];
+              }
+            } else {
+              inputs[edge.targetHandle] = val;
             }
           }
         }

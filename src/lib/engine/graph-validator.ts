@@ -160,6 +160,7 @@ export function topologicalSort(
   }
 
   for (const edge of edges) {
+    if (!inDegree.has(edge.source) || !inDegree.has(edge.target)) continue;
     const currentDegree = inDegree.get(edge.target) ?? 0;
     inDegree.set(edge.target, currentDegree + 1);
     adj.get(edge.source)?.push(edge.target);
