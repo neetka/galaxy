@@ -16,6 +16,7 @@ export function CustomEdge({
   targetPosition,
   style = {},
   markerEnd,
+  selected,
 }: EdgeProps) {
   const [edgePath] = getBezierPath({
     sourceX,
@@ -32,8 +33,8 @@ export function CustomEdge({
       <path
         d={edgePath}
         fill="none"
-        stroke="rgba(124, 58, 237, 0.08)"
-        strokeWidth={8}
+        stroke={selected ? "rgba(124, 58, 237, 0.25)" : "rgba(124, 58, 237, 0.08)"}
+        strokeWidth={selected ? 10 : 8}
         style={{ filter: "blur(4px)" }}
       />
       <BaseEdge
@@ -41,8 +42,8 @@ export function CustomEdge({
         path={edgePath}
         markerEnd={markerEnd}
         style={{
-          stroke: "hsl(263, 70%, 50%)",
-          strokeWidth: 2,
+          stroke: selected ? "hsl(271, 91%, 60%)" : "hsl(263, 70%, 50%)",
+          strokeWidth: selected ? 3 : 2,
           ...style,
         }}
       />

@@ -164,17 +164,33 @@ function WorkflowCanvasInner({ workflowId }: { workflowId: string }) {
         return;
       }
 
-      // Delete selected nodes
+      // Delete selected nodes and edges
       if (e.key === "Delete" || e.key === "Backspace") {
         if (isEditingText) return;
+        
+        let hasChanges = false;
+        
         const selectedNodes = useWorkflowStore.getState().selectedNodes;
         selectedNodes.forEach((id) => {
           const node = useWorkflowStore.getState().nodes.find((n) => n.id === id);
           // Don't delete requestInputs and response nodes
           if (node && node.type !== "requestInputs" && node.type !== "response") {
             removeNode(id);
+            hasChanges = true;
           }
         });
+
+        const edges = useWorkflowStore.getState().edges;
+        const selectedEdges = edges.filter((e) => e.selected);
+        if (selectedEdges.length > 0) {
+          if (!hasChanges) {
+            useWorkflowStore.getState().takeSnapshot();
+          }
+          const selectedEdgeIds = new Set(selectedEdges.map((e) => e.id));
+          useWorkflowStore.setState((state) => ({
+            edges: state.edges.filter((e) => !selectedEdgeIds.has(e.id)),
+          }));
+        }
       }
     };
 

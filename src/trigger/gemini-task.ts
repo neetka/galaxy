@@ -34,15 +34,24 @@ export interface GeminiTaskOutput {
 export async function executeGemini(
   input: GeminiTaskInput
 ): Promise<GeminiTaskOutput> {
-  // Validate and sanitize model
-  const validModels = [
-    "gemini-3.5-flash",
-    "gemini-3.1-flash-lite",
-    "gemini-2.5-flash",
-    "gemini-2.5-flash-lite",
-    "gemini-3-flash"
-  ];
-  const sanitizedModel = validModels.includes(input.model) ? input.model : "gemini-3.5-flash";
+  // Map models to working ones to prevent 404 (no longer available to new users/unsupported)
+  let sanitizedModel = input.model || "gemini-3.5-flash";
+  if (sanitizedModel === "gemini-2.5-flash" || sanitizedModel === "gemini-3-flash") {
+    sanitizedModel = "gemini-3.5-flash";
+  } else if (sanitizedModel === "gemini-2.5-flash-lite") {
+    sanitizedModel = "gemini-3.1-flash-lite";
+  } else {
+    const validModels = [
+      "gemini-3.5-flash",
+      "gemini-3.1-flash-lite",
+      "gemini-2.5-flash",
+      "gemini-2.5-flash-lite",
+      "gemini-3-flash"
+    ];
+    if (!validModels.includes(sanitizedModel)) {
+      sanitizedModel = "gemini-3.5-flash";
+    }
+  }
   
   console.log("[executeGemini] Starting with input:", {
     originalModel: input.model,

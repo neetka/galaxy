@@ -195,16 +195,24 @@ export async function POST(request: Request) {
               outputImage: res.croppedImageBase64,
             };
           } else if (nodeType === "gemini") {
-            // Validate and sanitize model
-            const validModels = [
-              "gemini-3.5-flash",
-              "gemini-3.1-flash-lite",
-              "gemini-2.5-flash",
-              "gemini-2.5-flash-lite",
-              "gemini-3-flash"
-            ];
             const rawModel = (inputs.model as string);
-            const model = validModels.includes(rawModel) ? rawModel : "gemini-3.5-flash";
+            let model = rawModel || "gemini-3.5-flash";
+            if (model === "gemini-2.5-flash" || model === "gemini-3-flash") {
+              model = "gemini-3.5-flash";
+            } else if (model === "gemini-2.5-flash-lite") {
+              model = "gemini-3.1-flash-lite";
+            } else {
+              const validModels = [
+                "gemini-3.5-flash",
+                "gemini-3.1-flash-lite",
+                "gemini-2.5-flash",
+                "gemini-2.5-flash-lite",
+                "gemini-3-flash"
+              ];
+              if (!validModels.includes(model)) {
+                model = "gemini-3.5-flash";
+              }
+            }
             
             const prompt = (inputs.prompt as string) || "";
             const systemPrompt = (inputs.systemPrompt as string) || "";

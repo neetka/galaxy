@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback } from "react";
-import { Handle, Position, type NodeProps } from "@xyflow/react";
+import { useCallback, useEffect } from "react";
+import { Handle, Position, useUpdateNodeInternals, type NodeProps } from "@xyflow/react";
 import { FileInput, Plus, Trash2, Type, Image as ImageIcon } from "lucide-react";
 import { BaseNode } from "./base-node";
 import { useWorkflowStore } from "@/stores/workflow-store";
@@ -12,6 +12,12 @@ export function RequestInputsNode({ id, data }: NodeProps) {
   const updateNodeData = useWorkflowStore((s) => s.updateNodeData);
   const nodeErrors = useWorkflowStore((s) => s.nodeErrors);
   const errorMessage = nodeErrors.get(id) || null;
+
+  const updateNodeInternals = useUpdateNodeInternals();
+
+  useEffect(() => {
+    updateNodeInternals(id);
+  }, [id, nodeData.fields, updateNodeInternals]);
 
   const addField = useCallback(
     (type: "text_field" | "image_field") => {

@@ -152,16 +152,33 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
 
     state.takeSnapshot();
 
-    set((state) => ({
-      edges: addEdge(
-        {
-          ...connection,
-          animated: true,
-          style: { stroke: "hsl(271, 91%, 65%)", strokeWidth: 2 },
-        },
-        state.edges
-      ),
-    }));
+    set((state) => {
+      const targetNode = state.nodes.find((n) => n.id === connection.target);
+      const isGeminiImage = targetNode?.type === "gemini" && connection.targetHandle === "image";
+      const isResponse = targetNode?.type === "response";
+
+      let filteredEdges = state.edges;
+      if (!isGeminiImage && !isResponse) {
+        filteredEdges = state.edges.filter(
+          (e) =>
+            !(
+              e.target === connection.target &&
+              e.targetHandle === connection.targetHandle
+            )
+        );
+      }
+
+      return {
+        edges: addEdge(
+          {
+            ...connection,
+            animated: true,
+            style: { stroke: "hsl(271, 91%, 65%)", strokeWidth: 2 },
+          },
+          filteredEdges
+        ),
+      };
+    });
   },
 
   setWorkflow: (id, name, nodes, edges) =>

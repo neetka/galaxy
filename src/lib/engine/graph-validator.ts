@@ -118,19 +118,20 @@ export function validateConnection(
   // (unless it's the multimodal "image" input on a Gemini node, or any input on a Response node)
   const isGeminiImage = targetNode.type === "gemini" && connection.targetHandle === "image";
   const isResponse = targetNode.type === "response";
+  
+  let edgesToValidate = edges;
   if (!isGeminiImage && !isResponse) {
-    const existingEdge = edges.find(
+    edgesToValidate = edges.filter(
       (e) =>
-        e.target === connection.target &&
-        e.targetHandle === connection.targetHandle
+        !(
+          e.target === connection.target &&
+          e.targetHandle === connection.targetHandle
+        )
     );
-    if (existingEdge) {
-      return { valid: false, reason: "Target handle already connected" };
-    }
   }
 
   // Cycle detection
-  const cycleCheck = detectCycle(nodes, edges, {
+  const cycleCheck = detectCycle(nodes, edgesToValidate, {
     source: connection.source,
     target: connection.target,
   });
