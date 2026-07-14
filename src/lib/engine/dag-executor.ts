@@ -172,6 +172,15 @@ export async function executeDAG(
           } else {
             inputs.image = [inputs.image, val];
           }
+        } else if (node.type === "response" && edge.targetHandle === "result") {
+          if (!inputs.result) {
+            inputs.result = [];
+          }
+          if (Array.isArray(inputs.result)) {
+            inputs.result.push(val);
+          } else {
+            inputs.result = [inputs.result, val];
+          }
         } else {
           inputs[edge.targetHandle] = val;
         }

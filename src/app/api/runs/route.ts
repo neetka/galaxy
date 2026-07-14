@@ -242,7 +242,14 @@ export async function POST(request: Request) {
               response: res.response,
             };
           } else if (nodeType === "response") {
-            const result = (inputs.result as string) || "";
+            let result = "";
+            if (Array.isArray(inputs.result)) {
+              result = inputs.result
+                .filter((r): r is string => typeof r === "string" && !!r)
+                .join("\n\n");
+            } else {
+              result = (inputs.result as string) || "";
+            }
             return {
               result,
             };

@@ -115,9 +115,10 @@ export function validateConnection(
   }
 
   // Duplicate connection check — don't allow multiple edges to the same target handle
-  // (unless it's the multimodal "image" input on a Gemini node)
+  // (unless it's the multimodal "image" input on a Gemini node, or any input on a Response node)
   const isGeminiImage = targetNode.type === "gemini" && connection.targetHandle === "image";
-  if (!isGeminiImage) {
+  const isResponse = targetNode.type === "response";
+  if (!isGeminiImage && !isResponse) {
     const existingEdge = edges.find(
       (e) =>
         e.target === connection.target &&
